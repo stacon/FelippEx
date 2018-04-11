@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">FelippEx</string>
+    <string name="login">Login</string>
+    <string name="representative_email_login">Representative E-mail</string>
+    <string name="representative_password_login">Representative password</string>
+    <string name="receive_a_package_button">Receive a package</string>
+    <string name="deliver_a_package_button">Deliver a package</string>
+    <string name="view_package_list_button">View packages</string>
+    <string name="what_would_you_like_to_do_main_menu">What would you like to do?</string>
 </resources>
