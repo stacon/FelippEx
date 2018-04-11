@@ -84,9 +84,9 @@ public class LoginActivity extends AppCompatActivity {
                 if (!task.isSuccessful()) {
                     Log.d(APP_TAG, "Problem signing in: " + task.getException());
                     try {
-                        showErrorDialog(task.getException().getMessage());
+                        CodeHelper.showErrorDialog(LoginActivity.this, task.getException().getMessage());
                     } catch (NullPointerException e) {
-                        showErrorDialog("There was a problem signing in...");
+                        CodeHelper.showErrorDialog(LoginActivity.this,"There was a problem signing in...");
                     }
                 } else {
                     Log.d(APP_TAG, "Signing was successful!");
@@ -96,16 +96,6 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private void showErrorDialog(String message) {
-
-        new AlertDialog.Builder(this)
-                .setTitle("Oops")
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
     }
 
     private final static boolean isValidEmail(CharSequence target) {
