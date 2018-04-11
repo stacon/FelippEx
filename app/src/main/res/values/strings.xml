@@ -1,10 +1,33 @@
 <resources>
+    <!--Login view-->
     <string name="app_name">FelippEx</string>
     <string name="login">Login</string>
     <string name="representative_email_login">Representative E-mail</string>
     <string name="representative_password_login">Representative password</string>
+    <!--END OF Login view-->
+
+    <!--Main menu view-->
+    <string name="what_would_you_like_to_do_main_menu">What would you like to do?</string>
     <string name="receive_a_package_button">Receive a package</string>
     <string name="deliver_a_package_button">Deliver a package</string>
     <string name="view_package_list_button">View packages</string>
-    <string name="what_would_you_like_to_do_main_menu">What would you like to do?</string>
+    <!--END OF Main menu view-->
+
+    <!--New/Edit package view-->
+    <string name="retrieval_form_textView">Retrieval Form</string>
+    <string name="senders_information_textView">Sender\'s Information</string>
+    <string name="senders_fullName_hint_editText">Sender\'s full name</string>
+    <string name="senders_phone_hint_editText">Sender\'s phone number</string>
+    <string name="senders_address_hint_editText">Sender\'s address</string>
+
+    <string name="receivers_information_textView">Receiver\'s Information</string>
+    <string name="receivers_fullName_hint_editText">Receiver\'s full name</string>
+    <string name="receivers_phone_hint_editText">Receiver\'s phone number</string>
+    <string name="receivers_address_hint_editText">Receiver\'s address</string>
+
+    <string name="package_received_button">Package Received</string>
+    <!--END OF New/Edit package view-->
+
+    <!--General-->
+    <string name="felippex_logo_description">FelippEx Logo</string>
 </resources>
