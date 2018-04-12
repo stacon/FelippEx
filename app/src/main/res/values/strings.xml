@@ -25,6 +25,8 @@
     <string name="receivers_phone_hint_editText">Receiver\'s phone number</string>
     <string name="receivers_address_hint_editText">Receiver\'s address</string>
 
+    <string name="photograph_the_package_button">Photo the package</string>
+
     <string name="package_received_button">Package Received</string>
     <!--END OF New/Edit package view-->
 

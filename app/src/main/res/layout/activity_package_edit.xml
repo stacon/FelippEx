@@ -116,6 +116,25 @@
                 android:ems="10"
                 android:hint="@string/receivers_address_hint_editText"
                 android:inputType="textPostalAddress" />
+
+            <Button
+                android:id="@+id/take_photo_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:text="@string/photograph_the_package_button"
+                android:textColor="#fff"
+                android:textStyle="bold"
+                android:onClick="onRequestPhoto"/>
+
+            <ImageView
+                android:id="@+id/package_image_placeholder"
+                android:scaleType="centerCrop"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                />
         </LinearLayout>
     </ScrollView>
 
