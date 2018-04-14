@@ -1,31 +1,88 @@
 package com.stathis.constantinos.felippex;
 
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
+
+import Models.FPackage;
+import Models.Transactor;
 
 public class PackageEditActivity extends AppCompatActivity {
 
+    // Final variables
     private final String APP_TAG="FelippEx";
     static final int REQUEST_TAKE_PHOTO = 1;
+
+    // Form related variables
+    private EditText mSendersName;
+    private EditText mSendersPhone;
+    private EditText mSendersAddress;
+    private Transactor sender;
+
+    private EditText mReceiversName;
+    private EditText mReceiversPhone;
+    private EditText mReceiversAddress;
+    private Transactor receiver;
+
+    // Photo related variables
     private ImageView packageImageView;
-    String mCurrentPhotoPath;
+    private String mCurrentPhotoPath;
+    private String imageNameHashed;
+    private Bitmap imageOutput;
+    private Uri downloadUrl;
+
+    // Package associated variables
+    private FPackage deliveryPackage;
+
+    // Firebase related functions
+    private FirebaseStorage storage;
+    private StorageReference mStorageRef;
+    private FirebaseAuth auth;
+    private DatabaseReference mDatabase;
+
+    // Transporter associated Firebase user
+    private FirebaseUser transporter;
+
+    // Error status and boolean for record procedure
+    Boolean error = false;
+    String errorStatus;
 
 
     @Override
@@ -33,7 +90,37 @@ public class PackageEditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_package_edit);
 
+        // Senders information var assignment
+        mSendersName = (EditText) findViewById(R.id.sender_fullName_input);
+        mSendersPhone = (EditText) findViewById(R.id.sender_phone_input);
+        mSendersAddress = (EditText) findViewById(R.id.sender_address_input);
+
+        // Receivers information var assignment
+        mReceiversName = (EditText) findViewById(R.id.receiver_fullName_input);
+        mReceiversPhone = (EditText) findViewById(R.id.receiver_phone_input);
+        mReceiversAddress = (EditText) findViewById(R.id.receiver_address_input);
+
+        // Image information var assignment
         packageImageView = (ImageView) findViewById(R.id.package_image_placeholder);
+
+        // Firebase related assignments
+        auth = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mStorageRef = storage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
+
+        // Transporter user assignment
+        transporter = FirebaseAuth.getInstance().getCurrentUser();
+
+    }
+
+    public void recordDelivery(View V) {
+        assignTransactors();
+        if (error) {Log.e(APP_TAG, errorStatus); return;}
+        deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
+        uploadImageAndSetUri();
+        mDatabase.child("deliveries").push().setValue(deliveryPackage);
+        leaveActivity();
     }
 
     public void onRequestPhoto(View v) {
@@ -106,13 +193,93 @@ public class PackageEditActivity extends AppCompatActivity {
         bmOptions.inSampleSize = scaleFactor;
         bmOptions.inPurgeable = true;
 
-        Bitmap imageOutput = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        imageOutput = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         packageImageView.setImageBitmap(prepareImageForPreview(imageOutput));
     }
 
+    private void assignTransactors() {
+        String senderNameInput = mSendersName.getText().toString();
+        String senderPhoneInput = mSendersPhone.getText().toString();
+        String senderAddressInput = mSendersAddress.getText().toString();
+        String receiverNameInput = mReceiversName.getText().toString();
+        String receiverPhoneInput = mReceiversPhone.getText().toString();
+        String receiverAddressInput = mReceiversAddress.getText().toString();
+
+        Log.d(APP_TAG, "Checking inputs from view");
+        if (senderNameInput.isEmpty() ||
+                senderPhoneInput.isEmpty() ||
+                senderAddressInput.isEmpty() ||
+                receiverNameInput.isEmpty() ||
+                receiverPhoneInput.isEmpty() ||
+                receiverAddressInput.isEmpty()) {
+            Toast.makeText(this, "Please fill all the fields regarding sender and receiver valid information", Toast.LENGTH_SHORT).show();
+            error = true;
+            errorStatus = "Transactor Inputs appear to be invalid";
+            return;
+        }
+
+        Log.d(APP_TAG, "Setting sender transactor");
+        sender = new Transactor(
+                senderNameInput,
+                senderPhoneInput,
+                senderAddressInput
+        );
+        Log.d(APP_TAG, "Sender transactor SET");
+
+        Log.d(APP_TAG, "Setting receiver transactor");
+        receiver = new Transactor(
+                receiverNameInput,
+                receiverPhoneInput,
+                receiverAddressInput
+        );
+        Log.d(APP_TAG, "Receiver transactor SET");
+    }
+
+    private void uploadImageAndSetUri() {
+        createHashedImageName();
+        StorageReference imagesRef = mStorageRef.child("packageImages");
+        StorageReference spaceRef = mStorageRef.child("packageImages/" + imageNameHashed);
+
+        packageImageView.setDrawingCacheEnabled(true);
+        packageImageView.buildDrawingCache();
+        Bitmap bitmap = packageImageView.getDrawingCache();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = imagesRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                CodeHelper.showErrorDialog(PackageEditActivity.this, "Image upload failed");
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                downloadUrl = taskSnapshot.getDownloadUrl();
+            }
+        });
+
+
+    }
+
+    private void createHashedImageName() {
+        String lTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        imageNameHashed =
+                (sender.getFullName().hashCode() * 17) +
+                (receiver.getFullName().hashCode() * 31) +
+                        (lTimestamp.hashCode() * 2) + ".jpg";
+    }
+
     private Bitmap prepareImageForPreview(Bitmap image) {
+        Log.d(APP_TAG, "Preparing image for preview");
         Matrix matrix = new Matrix();
         matrix.preRotate(90);
         return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
+    }
+
+    private void leaveActivity() {
+        Toast.makeText(this, "Delivery Recorded", Toast.LENGTH_SHORT).show();
+        finish();
     }
 }

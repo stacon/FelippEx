@@ -1,5 +1,6 @@
 package Models;
 
+import android.graphics.Bitmap;
 import android.media.Image;
 
 import com.google.firebase.auth.FirebaseUser;
@@ -8,44 +9,48 @@ public class FPackage {
     private Transactor tSender;
     private Transactor tReceiver;
 
-    private FirebaseUser pReceiver;
-    private FirebaseUser assignedDeliverer;
+    private String pReceiverFUID;
+    private String assignedDelivererFUID;
+    private String imageRefUri;
 
-    private Image packageImage;
     private boolean delivered;
 
-    public FPackage(Transactor tSender, Transactor tReceiver, FirebaseUser pReceiver, Image packageImage) {
+    public FPackage(Transactor tSender, Transactor tReceiver, String pReceiverFUID, String imageRefUri) {
         this.tSender = tSender;
         this.tReceiver = tReceiver;
-        this.pReceiver = pReceiver;
-        this.packageImage = packageImage;
+        this.pReceiverFUID = pReceiverFUID;
+        this.assignedDelivererFUID = "";
+        this.delivered = false;
+        this.imageRefUri = imageRefUri;
     }
 
-    public Transactor gettSender() {
+    public Transactor getSender() {
         return tSender;
     }
 
-    public Transactor gettReceiver() {
+    public Transactor getReceiver() {
         return tReceiver;
     }
 
-    public FirebaseUser getpReceiver() {
-        return pReceiver;
+    public String getpReceiver() {
+        return pReceiverFUID;
     }
 
-    public Image getPackageImage() {
-        return packageImage;
+    public String getAssignedDelivererFUID() {
+        return assignedDelivererFUID;
     }
 
-    public FirebaseUser getAssignedDeliverer() {
-        return assignedDeliverer;
+    public void setAssignedDelivererFUID(String assignedDelivererFUID) {
+        this.assignedDelivererFUID = assignedDelivererFUID;
     }
 
-    public void setAssignedDeliverer(FirebaseUser pDeliverer) {
-        this.assignedDeliverer = pDeliverer;
+    public String getImageRefUri() { return imageRefUri; }
+
+    public void setImageRefUri(String imageRefUri) {
+        this.imageRefUri = imageRefUri;
     }
 
-    public boolean isDelivered() {
+    public boolean getDelivered() {
         return delivered;
     }
 
