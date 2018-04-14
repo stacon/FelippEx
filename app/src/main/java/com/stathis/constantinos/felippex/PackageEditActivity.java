@@ -1,15 +1,10 @@
 package com.stathis.constantinos.felippex;
 
-import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.media.Image;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -20,7 +15,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -37,8 +31,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 
 import Models.FPackage;
@@ -112,18 +104,24 @@ public class PackageEditActivity extends AppCompatActivity {
         // Transporter user assignment
         transporter = FirebaseAuth.getInstance().getCurrentUser();
 
+        Log.d(APP_TAG, "PackageEdit activity started");
+
     }
 
     public void recordDelivery(View V) {
+        Log.d(APP_TAG, "Attempting to assign transactors");
         assignTransactors();
-        if (error) {Log.e(APP_TAG, errorStatus); return;}
-        deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
-        uploadImageAndSetUri();
-        mDatabase.child("deliveries").push().setValue(deliveryPackage);
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
+        Log.d(APP_TAG, "Transactors assignment succeeded");
+        checkIfImageHasBeenSelected();
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
+        Log.d(APP_TAG, "Attempting to assign delivery information to FPackage Object");
+        attemptToStoreDelivery();
         leaveActivity();
     }
 
     public void onRequestPhoto(View v) {
+        Log.d(APP_TAG, "Photo the package was clicked");
         dispatchTakePictureIntent();
     }
 
@@ -136,6 +134,7 @@ public class PackageEditActivity extends AppCompatActivity {
             File photoFile = null;
             try {
                 photoFile = createImageFile();
+                Log.d(APP_TAG, "Attempt to create file slot for photo taking succeeded");
             } catch (IOException ex) {
                 Log.e(APP_TAG,"Error occurred while creating the File");
             }
@@ -145,6 +144,7 @@ public class PackageEditActivity extends AppCompatActivity {
                         "com.example.android.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                Log.d(APP_TAG, "Requesting camera for photo taking");
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
@@ -174,6 +174,8 @@ public class PackageEditActivity extends AppCompatActivity {
     }
 
     private void setPic() {
+        Log.d(APP_TAG, "Attempting to set picture at ImageView placeholder");
+
         // Get the dimensions of the View
         int targetW = packageImageView.getWidth();
         int targetH = packageImageView.getHeight();
@@ -195,9 +197,11 @@ public class PackageEditActivity extends AppCompatActivity {
 
         imageOutput = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
         packageImageView.setImageBitmap(prepareImageForPreview(imageOutput));
+        Log.d(APP_TAG,"Image set on ImageView");
     }
 
     private void assignTransactors() {
+        Log.d(APP_TAG, "ssignTransactors() fired");
         String senderNameInput = mSendersName.getText().toString();
         String senderPhoneInput = mSendersPhone.getText().toString();
         String senderAddressInput = mSendersAddress.getText().toString();
@@ -235,7 +239,15 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Receiver transactor SET");
     }
 
-    private void uploadImageAndSetUri() {
+    private void checkIfImageHasBeenSelected() {
+        if (packageImageView.getDrawable() == null) {
+            error = true;
+            errorStatus = "Please set an image package";
+            Toast.makeText(this, "Please take a photo of the package", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void attemptToStoreDelivery() {
         createHashedImageName();
         StorageReference imagesRef = mStorageRef.child("packageImages");
         StorageReference spaceRef = mStorageRef.child("packageImages/" + imageNameHashed);
@@ -247,16 +259,23 @@ public class PackageEditActivity extends AppCompatActivity {
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
 
-        UploadTask uploadTask = imagesRef.putBytes(data);
+        UploadTask uploadTask = spaceRef.putBytes(data);
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
                 CodeHelper.showErrorDialog(PackageEditActivity.this, "Image upload failed");
+                error = true;
+                errorStatus = "Image Upload Failed. Please try again later";
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 downloadUrl = taskSnapshot.getDownloadUrl();
+                deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
+                if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
+                Log.d(APP_TAG, "Image upload and Uri retrieval succeeded");
+                Log.d(APP_TAG, "Attempting to store delivery info to database");
+                mDatabase.child("deliveries").push().setValue(deliveryPackage);
             }
         });
 
@@ -266,9 +285,10 @@ public class PackageEditActivity extends AppCompatActivity {
     private void createHashedImageName() {
         String lTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         imageNameHashed =
-                (sender.getFullName().hashCode() * 17) +
-                (receiver.getFullName().hashCode() * 31) +
-                        (lTimestamp.hashCode() * 2) + ".jpg";
+                Math.abs((sender.getFullName().hashCode() * 37) +
+                        (receiver.getFullName().hashCode() * 18) +
+                        (lTimestamp.hashCode() * 15)) + ".jpg";
+        Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
     }
 
     private Bitmap prepareImageForPreview(Bitmap image) {
@@ -279,7 +299,8 @@ public class PackageEditActivity extends AppCompatActivity {
     }
 
     private void leaveActivity() {
-        Toast.makeText(this, "Delivery Recorded", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Delivery has been recorded successfully", Toast.LENGTH_SHORT).show();
+        Log.d(APP_TAG, "Leaving PackageEditActivity");
         finish();
     }
 }

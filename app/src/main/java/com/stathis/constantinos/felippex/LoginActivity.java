@@ -22,7 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private final String APP_TAG = "felippEx";
+    private final String APP_TAG = "FelippEx";
     private EditText mEmailView;
     private EditText mPasswordView;
     private FirebaseAuth mAuth;
@@ -47,10 +47,12 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mAuth = FirebaseAuth.getInstance();
+        Log.d(APP_TAG,"LoginActivity started");
     }
 
     // Login button onClick action
     public void signInExistingUser(View v) {
+        Log.d(APP_TAG, "Attempting to login");
         attemptLogin();
     }
 
@@ -82,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(APP_TAG, "signInWithEmail() onComplete: " + task.isSuccessful());
 
                 if (!task.isSuccessful()) {
-                    Log.d(APP_TAG, "Problem signing in: " + task.getException());
+                    Log.e(APP_TAG, "Problem signing in: " + task.getException());
                     try {
                         CodeHelper.showErrorDialog(LoginActivity.this, task.getException().getMessage());
                     } catch (NullPointerException e) {
@@ -91,6 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                 } else {
                     Log.d(APP_TAG, "Signing was successful!");
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    Log.d(APP_TAG, "Leaving Login activity");
                     finish();
                     startActivity(intent);
                 }

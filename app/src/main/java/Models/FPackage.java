@@ -1,9 +1,6 @@
 package Models;
 
-import android.graphics.Bitmap;
-import android.media.Image;
-
-import com.google.firebase.auth.FirebaseUser;
+import java.util.Calendar;
 
 public class FPackage {
     private Transactor tSender;
@@ -12,6 +9,8 @@ public class FPackage {
     private String pReceiverFUID;
     private String assignedDelivererFUID;
     private String imageRefUri;
+
+    private String timestamp;
 
     private boolean delivered;
 
@@ -22,6 +21,7 @@ public class FPackage {
         this.assignedDelivererFUID = "";
         this.delivered = false;
         this.imageRefUri = imageRefUri;
+        this.timestamp = Calendar.getInstance().getTime().toString();
     }
 
     public Transactor getSender() {
@@ -56,5 +56,13 @@ public class FPackage {
 
     public void setDelivered(boolean delivered) {
         this.delivered = delivered;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 }
