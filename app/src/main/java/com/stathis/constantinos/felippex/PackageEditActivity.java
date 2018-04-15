@@ -13,8 +13,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -43,6 +46,7 @@ public class PackageEditActivity extends AppCompatActivity {
     static final int REQUEST_TAKE_PHOTO = 1;
 
     // Form related variables
+    private ScrollView mScrollView;
     private EditText mSendersName;
     private EditText mSendersPhone;
     private EditText mSendersAddress;
@@ -60,6 +64,9 @@ public class PackageEditActivity extends AppCompatActivity {
     private Bitmap imageOutput;
     private Uri downloadUrl;
 
+    // Delivery Button
+    private Button mPackageReceivedButton;
+
     // Package associated variables
     private FPackage deliveryPackage;
 
@@ -73,15 +80,18 @@ public class PackageEditActivity extends AppCompatActivity {
     private FirebaseUser transporter;
 
     // Error status and boolean for record procedure
-    Boolean error = false;
-    String errorStatus;
+    private Boolean error = false;
+    private String errorStatus;
 
+    //UI Variable
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_package_edit);
 
+        mScrollView = (ScrollView) findViewById(R.id.main_scrollView);
         // Senders information var assignment
         mSendersName = (EditText) findViewById(R.id.sender_fullName_input);
         mSendersPhone = (EditText) findViewById(R.id.sender_phone_input);
@@ -95,6 +105,9 @@ public class PackageEditActivity extends AppCompatActivity {
         // Image information var assignment
         packageImageView = (ImageView) findViewById(R.id.package_image_placeholder);
 
+        // Package received button
+        mPackageReceivedButton = findViewById(R.id.package_received_button);
+
         // Firebase related assignments
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
@@ -104,22 +117,70 @@ public class PackageEditActivity extends AppCompatActivity {
         // Transporter user assignment
         transporter = FirebaseAuth.getInstance().getCurrentUser();
 
+        // Progress bar hook and dimming
+        mProgressBar = (ProgressBar) findViewById(R.id.deliveryProgressBar);
+        mProgressBar.setVisibility(View.INVISIBLE);
+
+
         Log.d(APP_TAG, "PackageEdit activity started");
 
     }
 
+    // Fired upon clicking receive package
     public void recordDelivery(View V) {
+
         Log.d(APP_TAG, "Attempting to assign transactors");
-        assignTransactors();
+        assignTransactorsAttemp();
         if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
         Log.d(APP_TAG, "Transactors assignment succeeded");
-        checkIfImageHasBeenSelected();
+        checkIfImageHasBeenSetOnImageView();
         if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
         Log.d(APP_TAG, "Attempting to assign delivery information to FPackage Object");
+        disableUI();
+        mProgressBar.setVisibility(View.VISIBLE);
         attemptToStoreDelivery();
-        leaveActivity();
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
     }
 
+    // Does the whole procedure and communication with Firebase
+    private void attemptToStoreDelivery() {
+        Toast.makeText(this, "Please wait while saving the delivery information...", Toast.LENGTH_LONG).show();
+        createHashedImageName();
+        StorageReference spaceRef = mStorageRef.child("packageImages/" + imageNameHashed);
+        packageImageView.setDrawingCacheEnabled(true);
+        packageImageView.buildDrawingCache();
+        Bitmap bitmap = packageImageView.getDrawingCache();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = spaceRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                error = true;
+                errorStatus = "Image Upload Failed. Please try again later";
+                mProgressBar.setVisibility(View.INVISIBLE);
+                enableUI();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                downloadUrl = taskSnapshot.getDownloadUrl();
+                deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
+                if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
+                Log.d(APP_TAG, "Image upload and Uri retrieval succeeded");
+                Log.d(APP_TAG, "Attempting to store delivery info to database");
+                mDatabase.child("deliveries").push().setValue(deliveryPackage);
+                mProgressBar.setVisibility(View.INVISIBLE);
+                enableUI();
+                leaveActivity();
+            }
+        });
+
+    }
+
+    // Fires once Photo package is clicked
     public void onRequestPhoto(View v) {
         Log.d(APP_TAG, "Photo the package was clicked");
         dispatchTakePictureIntent();
@@ -150,6 +211,7 @@ public class PackageEditActivity extends AppCompatActivity {
         }
     }
 
+    // Creates a temp image file for the imageView
     private File createImageFile() throws IOException {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -166,6 +228,7 @@ public class PackageEditActivity extends AppCompatActivity {
         return image;
     }
 
+    // Handling usage of camera resource result
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
@@ -173,6 +236,7 @@ public class PackageEditActivity extends AppCompatActivity {
         }
     }
 
+    // Sets Picture at ImageView
     private void setPic() {
         Log.d(APP_TAG, "Attempting to set picture at ImageView placeholder");
 
@@ -200,7 +264,8 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG,"Image set on ImageView");
     }
 
-    private void assignTransactors() {
+    // Attempting to assign sender and receiver as Transactor Objects. Sets error if fail
+    private void assignTransactorsAttemp() {
         Log.d(APP_TAG, "ssignTransactors() fired");
         String senderNameInput = mSendersName.getText().toString();
         String senderPhoneInput = mSendersPhone.getText().toString();
@@ -239,7 +304,8 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Receiver transactor SET");
     }
 
-    private void checkIfImageHasBeenSelected() {
+    // Checks if image is set on imageview or it saves an error
+    private void checkIfImageHasBeenSetOnImageView() {
         if (packageImageView.getDrawable() == null) {
             error = true;
             errorStatus = "Please set an image package";
@@ -247,41 +313,7 @@ public class PackageEditActivity extends AppCompatActivity {
         }
     }
 
-    private void attemptToStoreDelivery() {
-        createHashedImageName();
-        StorageReference imagesRef = mStorageRef.child("packageImages");
-        StorageReference spaceRef = mStorageRef.child("packageImages/" + imageNameHashed);
-
-        packageImageView.setDrawingCacheEnabled(true);
-        packageImageView.buildDrawingCache();
-        Bitmap bitmap = packageImageView.getDrawingCache();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        UploadTask uploadTask = spaceRef.putBytes(data);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                CodeHelper.showErrorDialog(PackageEditActivity.this, "Image upload failed");
-                error = true;
-                errorStatus = "Image Upload Failed. Please try again later";
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                downloadUrl = taskSnapshot.getDownloadUrl();
-                deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
-                if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
-                Log.d(APP_TAG, "Image upload and Uri retrieval succeeded");
-                Log.d(APP_TAG, "Attempting to store delivery info to database");
-                mDatabase.child("deliveries").push().setValue(deliveryPackage);
-            }
-        });
-
-
-    }
-
+    // Creates a unique hashed name for storing an image
     private void createHashedImageName() {
         String lTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         imageNameHashed =
@@ -291,6 +323,7 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
     }
 
+    // Preparing and rotating Image for the ImageView and storage
     private Bitmap prepareImageForPreview(Bitmap image) {
         Log.d(APP_TAG, "Preparing image for preview");
         Matrix matrix = new Matrix();
@@ -298,9 +331,22 @@ public class PackageEditActivity extends AppCompatActivity {
         return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
     }
 
+    // Finishes current activity along with some others tasks
     private void leaveActivity() {
         Toast.makeText(this, "Delivery has been recorded successfully", Toast.LENGTH_SHORT).show();
         Log.d(APP_TAG, "Leaving PackageEditActivity");
         finish();
+    }
+
+    // Disabling UI view elements (e.g. for loading)
+    private void disableUI(){
+        mScrollView.setVisibility(View.INVISIBLE);
+        mPackageReceivedButton.setEnabled(false);
+    }
+
+    // Enabling UI view elements
+    private void enableUI(){
+        mScrollView.setVisibility(View.VISIBLE);
+        mPackageReceivedButton.setEnabled(true);
     }
 }

@@ -11,7 +11,9 @@ import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +27,9 @@ public class LoginActivity extends AppCompatActivity {
     private final String APP_TAG = "FelippEx";
     private EditText mEmailView;
     private EditText mPasswordView;
+    private Button mLoginButton;
+    private ProgressBar mProgressBar;
+
     private FirebaseAuth mAuth;
 
     @Override
@@ -34,6 +39,10 @@ public class LoginActivity extends AppCompatActivity {
 
         mEmailView = (EditText) findViewById(R.id.login_email_input);
         mPasswordView = (EditText) findViewById(R.id.login_password_input);
+        mLoginButton = (Button) findViewById(R.id.login_button);
+
+        mProgressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
+        mProgressBar.setVisibility(View.INVISIBLE);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -75,7 +84,8 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         Toast.makeText(this, "Login in Progress, please wait...", Toast.LENGTH_SHORT).show();
-
+        disableUI();
+        mProgressBar.setVisibility(View.VISIBLE);
         // Use FirebaseAuth to sign in with email & password
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
@@ -90,10 +100,13 @@ public class LoginActivity extends AppCompatActivity {
                     } catch (NullPointerException e) {
                         CodeHelper.showErrorDialog(LoginActivity.this,"There was a problem signing in...");
                     }
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    enableUI();
                 } else {
                     Log.d(APP_TAG, "Signing was successful!");
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     Log.d(APP_TAG, "Leaving Login activity");
+                    mProgressBar.setVisibility(View.INVISIBLE);
                     finish();
                     startActivity(intent);
                 }
@@ -103,6 +116,18 @@ public class LoginActivity extends AppCompatActivity {
 
     private final static boolean isValidEmail(CharSequence target) {
         return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
+    }
+
+    private void disableUI(){
+        mEmailView.setVisibility(View.INVISIBLE);
+        mPasswordView.setVisibility(View.INVISIBLE);
+        mLoginButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void enableUI(){
+        mEmailView.setVisibility(View.VISIBLE);
+        mPasswordView.setVisibility(View.VISIBLE);
+        mLoginButton.setVisibility(View.VISIBLE);
     }
 
 }

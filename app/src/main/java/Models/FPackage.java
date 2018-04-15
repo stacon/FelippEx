@@ -1,6 +1,8 @@
 package Models;
 
-import java.util.Calendar;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class FPackage {
     private Transactor tSender;
@@ -21,7 +23,9 @@ public class FPackage {
         this.assignedDelivererFUID = "";
         this.delivered = false;
         this.imageRefUri = imageRefUri;
-        this.timestamp = Calendar.getInstance().getTime().toString();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        this.timestamp = dateFormat.format(date);
     }
 
     public Transactor getSender() {

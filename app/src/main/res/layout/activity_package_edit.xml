@@ -6,6 +6,22 @@
     android:layout_height="match_parent"
     tools:context=".PackageEditActivity">
 
+    <ProgressBar
+        android:id="@+id/deliveryProgressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/title_linearLayout"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:id="@+id/title_linearLayout"
         android:layout_width="match_parent"
@@ -47,7 +63,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_linearLayout"
-        app:layout_constraintVertical_bias="1.0">
+        app:layout_constraintVertical_bias="0.0">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -122,19 +138,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/colorAccent"
+                android:onClick="onRequestPhoto"
                 android:text="@string/photograph_the_package_button"
                 android:textColor="#fff"
-                android:textStyle="bold"
-                android:onClick="onRequestPhoto"/>
+                android:textStyle="bold" />
 
             <ImageView
                 android:id="@+id/package_image_placeholder"
-                android:scaleType="centerCrop"
                 android:layout_width="300dp"
                 android:layout_height="300dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="20dp"
-                />
+                android:scaleType="centerCrop" />
         </LinearLayout>
     </ScrollView>
 
