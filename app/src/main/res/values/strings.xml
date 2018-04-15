@@ -33,8 +33,13 @@
     <!--Today received packages view-->
     <string name="today_received_title">Today\'s receipts</string>
     <string name="id_row_textView">ID :</string>
+    <string name="receiver">Receiver :</string>
+    <string name="sender">Sender :</string>
+    <string name="view">View</string>
+    <string name="edit">Edit</string>
     <!--END OF Today received packages view-->
 
     <!--General-->
     <string name="felippex_logo_description">FelippEx Logo</string>
+
 </resources>

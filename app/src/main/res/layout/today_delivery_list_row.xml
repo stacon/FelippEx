@@ -20,7 +20,8 @@
             android:layout_weight="1"
             android:paddingRight="10dp"
             android:text="@string/id_row_textView"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:paddingEnd="10dp" />
 
         <TextView
             android:id="@+id/id_output_textview"
@@ -44,7 +45,7 @@
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:layout_weight=".05"
-            android:text="Sender :" />
+            android:text="@string/sender" />
 
         <TextView
             android:id="@+id/sender_name_textview"
@@ -66,7 +67,7 @@
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:layout_weight=".05"
-            android:text="Receiver :" />
+            android:text="@string/receiver" />
 
         <TextView
             android:id="@+id/receiver_name_textview"
@@ -94,8 +95,10 @@
             android:layout_marginTop="5dp"
             android:layout_weight="1"
             android:background="@color/colorAccent"
-            android:text="View"
-            android:textColor="#FFF" />
+            android:text="@string/view"
+            android:textColor="#FFF"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="0dp" />
 
         <Button
             android:id="@+id/edit_button"
@@ -108,8 +111,10 @@
             android:layout_marginTop="5dp"
             android:layout_weight="1"
             android:background="@color/colorPrimaryDark"
-            android:text="Edit"
-            android:textColor="#fff" />
+            android:text="@string/edit"
+            android:textColor="#fff"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="0dp" />
 
     </LinearLayout>
 
