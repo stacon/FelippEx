@@ -33,6 +33,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        packagesListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(APP_TAG, "Today\'s package list option clicked");
+                Intent intent = new Intent(MainActivity.this, TodayReceivedActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 

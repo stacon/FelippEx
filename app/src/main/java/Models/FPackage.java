@@ -1,8 +1,6 @@
 package Models;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.stathis.constantinos.felippex.CodeHelper;
 
 public class FPackage {
     private Transactor tSender;
@@ -12,7 +10,12 @@ public class FPackage {
     private String assignedDelivererFUID;
     private String imageRefUri;
 
-    private String timestamp;
+    private String dateReceived;
+    private String timeReceived;
+
+    // Firebase query synthetics
+    private String syntheticReceiptValue; // Synthetic Value pReceiverFUID-date
+    private String syntheticDeliveryValue; // Synthetic Value pReceiverFUID-date-assignedDelivererFUID(-delivered)opt
 
     private boolean delivered;
 
@@ -23,9 +26,11 @@ public class FPackage {
         this.assignedDelivererFUID = "";
         this.delivered = false;
         this.imageRefUri = imageRefUri;
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        this.timestamp = dateFormat.format(date);
+
+        this.dateReceived = CodeHelper.getDateNowToString();
+        this.timeReceived = CodeHelper.getTimeNowToString();
+
+        this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
     }
 
     public Transactor getSender() {
@@ -62,11 +67,35 @@ public class FPackage {
         this.delivered = delivered;
     }
 
-    public String getTimestamp() {
-        return timestamp;
+    public String getDateReceived() {
+        return dateReceived;
     }
 
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public void setDateReceived(String dateReceived) {
+        this.dateReceived = dateReceived;
+    }
+
+    public String getTimeReceived() {
+        return timeReceived;
+    }
+
+    public void setTimeReceived(String timeReceived) {
+        this.timeReceived = timeReceived;
+    }
+
+    public String getSyntheticReceiptValue() {
+        return syntheticReceiptValue;
+    }
+
+    public void setSyntheticReceiptValue(String syntheticReceiptValue) {
+        this.syntheticReceiptValue = syntheticReceiptValue;
+    }
+
+    public String getSyntheticDeliveryValue() {
+        return syntheticDeliveryValue;
+    }
+
+    public void setSyntheticDeliveryValue(String syntheticDeliveryValue) {
+        this.syntheticDeliveryValue = syntheticDeliveryValue;
     }
 }

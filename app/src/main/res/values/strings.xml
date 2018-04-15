@@ -10,7 +10,7 @@
     <string name="what_would_you_like_to_do_main_menu">What would you like to do?</string>
     <string name="receive_a_package_button">Receive a package</string>
     <string name="deliver_a_package_button">Deliver a package</string>
-    <string name="view_package_list_button">View today\'s received packages</string>
+    <string name="view_package_list_button">View received packages</string>
     <!--END OF Main menu view-->
 
     <!--New/Edit package view-->
@@ -29,6 +29,11 @@
 
     <string name="package_received_button">Package Received</string>
     <!--END OF New/Edit package view-->
+
+    <!--Today received packages view-->
+    <string name="today_received_title">Today\'s receipts</string>
+    <string name="id_row_textView">ID :</string>
+    <!--END OF Today received packages view-->
 
     <!--General-->
     <string name="felippex_logo_description">FelippEx Logo</string>

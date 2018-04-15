@@ -73,7 +73,6 @@ public class PackageEditActivity extends AppCompatActivity {
     // Firebase related functions
     private FirebaseStorage storage;
     private StorageReference mStorageRef;
-    private FirebaseAuth auth;
     private DatabaseReference mDatabase;
 
     // Transporter associated Firebase user
@@ -109,7 +108,6 @@ public class PackageEditActivity extends AppCompatActivity {
         mPackageReceivedButton = findViewById(R.id.package_received_button);
 
         // Firebase related assignments
-        auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorageRef = storage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
