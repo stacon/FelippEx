@@ -21,9 +21,6 @@ public class Transactor {
     }
 
     public void setFullName(String fullName) {
-        if (!isValidFullName()) {
-            throw new IllegalArgumentException("The full name must contain only letters and spaces");
-        }
         this.fullName = fullName;
     }
 
@@ -32,9 +29,7 @@ public class Transactor {
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        if (!isValidPhoneNumber()) {
-            throw new IllegalArgumentException("The phone number must contain numbers only in phone formatted way");
-        }
+
         this.phoneNumber = phoneNumber;
     }
 
@@ -47,13 +42,13 @@ public class Transactor {
     }
 
 
-    private boolean isValidFullName() {
+    private boolean isValidFullName(String fullName) {
         Pattern pattern = Pattern.compile("^[\\p{L} .'-]+$",Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(this.fullName);
+        Matcher matcher = pattern.matcher(fullName);
         return matcher.find();
     }
 
-    private boolean isValidPhoneNumber() {
-        return android.util.Patterns.PHONE.matcher(this.phoneNumber).matches();
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        return android.util.Patterns.PHONE.matcher(phoneNumber).matches();
     }
 }

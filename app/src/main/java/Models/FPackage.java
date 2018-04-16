@@ -5,6 +5,7 @@ import com.stathis.constantinos.felippex.CodeHelper;
 public class FPackage {
     private Transactor tSender;
     private Transactor tReceiver;
+    private String transactionId;
 
     private String pReceiverFUID;
     private String assignedDelivererFUID;
@@ -32,6 +33,8 @@ public class FPackage {
 
         this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
     }
+
+    public FPackage () {}
 
     public Transactor getSender() {
         return tSender;
@@ -98,4 +101,37 @@ public class FPackage {
     public void setSyntheticDeliveryValue(String syntheticDeliveryValue) {
         this.syntheticDeliveryValue = syntheticDeliveryValue;
     }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public Transactor gettSender() {
+        return tSender;
+    }
+
+    public void settSender(Transactor tSender) {
+        this.tSender = tSender;
+    }
+
+    public Transactor gettReceiver() {
+        return tReceiver;
+    }
+
+    public void settReceiver(Transactor tReceiver) {
+        this.tReceiver = tReceiver;
+    }
+
+    public String getpReceiverFUID() {
+        return pReceiverFUID;
+    }
+
+    public void setpReceiverFUID(String pReceiverFUID) {
+        this.pReceiverFUID = pReceiverFUID;
+    }
+
 }
