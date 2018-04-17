@@ -41,5 +41,16 @@
 
     <!--General-->
     <string name="felippex_logo_description">FelippEx Logo</string>
+    <string name="delivery_info_title">Delivery Info</string>
+    <string name="no_deliveries_found_textview">No Deliveries Found</string>
+    <string name="sender_information_label">Sender Information</string>
+    <string name="receiver_information_label">Receiver Information</string>
+    <string name="full_name_label">Full name :</string>
+    <string name="phone_number_label">Phone number :</string>
+    <string name="address_label">Address :</string>
+    <string name="delete_button">Delete</string>
+    <string name="edit_button">Edit</string>
+    <string name="mark_as_delivered_button">Mark as Delivered</string>
+    <string name="package_image_imageview">Package Image</string>
 
 </resources>

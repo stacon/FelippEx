@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -39,15 +40,19 @@ public class TodayReceivedActivity extends AppCompatActivity {
     private TodayPackagesAdapter mTodayPackagesAdapter;
 
     private ProgressBar mProgressBar;
+    private TextView mNoPackagesFoundTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_today_received);
+
+        mNoPackagesFoundTextView = (TextView) findViewById(R.id.no_packages_found_textview);
+        mNoPackagesFoundTextView.setVisibility(View.INVISIBLE);
         mProgressBar = (ProgressBar) findViewById(R.id.mtProgressBar);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.today_packages_recycler_view);
-        mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList);
+        mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList, TodayReceivedActivity.this);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -81,6 +86,7 @@ public class TodayReceivedActivity extends AppCompatActivity {
                     mProgressBar.setVisibility(View.INVISIBLE);
                 } else {
                     Log.d(APP_TAG, "No data found with the synthetic key of " + querySynthKey);
+                    mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
                 }
             }
 
