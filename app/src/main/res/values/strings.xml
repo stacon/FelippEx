@@ -53,4 +53,8 @@
     <string name="mark_as_delivered_button">Mark as Delivered</string>
     <string name="package_image_imageview">Package Image</string>
 
+    <!--Static Keys-->
+    <string name="maps_api_key">AIzaSyDTZkZBLv3R_B3pq6fvXJEvwFbYJJtbKd4</string>
+    <string name="package_photo_label">Package Photo</string>
+    <!--END OF Static Keys-->
 </resources>

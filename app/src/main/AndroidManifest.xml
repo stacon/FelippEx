@@ -46,7 +46,8 @@
         <activity
             android:name=".TodayReceivedActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".DeliveryViewActivity"></activity>
+        <activity android:name=".DeliveryViewActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

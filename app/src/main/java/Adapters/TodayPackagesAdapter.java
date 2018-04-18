@@ -51,7 +51,7 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
-        FPackage fPackage = tPackageList.get(position);
+        final FPackage fPackage = tPackageList.get(position);
         holder.transactionId.setText(fPackage.getTransactionId());
         holder.senderName.setText(fPackage.getSender().getFullName());
         holder.receiverName.setText(fPackage.getReceiver().getFullName());
@@ -59,6 +59,8 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, DeliveryViewActivity.class);
+                intent.putExtra("transactionID", fPackage.getTransactionId());
+                intent.putExtra("requestedView","viewPackage");
                 context.startActivity(intent);
             }
         });

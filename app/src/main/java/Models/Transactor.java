@@ -1,5 +1,6 @@
 package Models;
 
+import java.security.InvalidParameterException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +22,12 @@ public class Transactor {
     }
 
     public void setFullName(String fullName) {
-        this.fullName = fullName;
+        if (isValidFullName(fullName)) {
+            this.fullName = fullName;
+        } else {
+            throw new InvalidParameterException("This full name is invalid");
+        }
+
     }
 
     public String getPhoneNumber() {
@@ -29,8 +35,12 @@ public class Transactor {
     }
 
     public void setPhoneNumber(String phoneNumber) {
+        if (isValidPhoneNumber(phoneNumber)) {
+            this.phoneNumber = phoneNumber;
+        } else {
+            throw new InvalidParameterException("This phone number is invalid");
+        }
 
-        this.phoneNumber = phoneNumber;
     }
 
     public String getAddress() {
