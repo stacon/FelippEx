@@ -27,7 +27,7 @@ import Adapters.TodayPackagesAdapter;
 import Models.FPackage;
 import Models.Transactor;
 
-public class TodayReceivedActivity extends AppCompatActivity {
+public class PackageListActivity extends AppCompatActivity {
 
     private final String APP_TAG = "FelippEx";
 
@@ -35,6 +35,7 @@ public class TodayReceivedActivity extends AppCompatActivity {
     private String transporterUID;
     private String exampleCall;
     private String querySynthKey;
+    private String viewMode;
 
     private List<FPackage> mFPackageList = new ArrayList<>();
     private RecyclerView mRecyclerView;
@@ -47,13 +48,35 @@ public class TodayReceivedActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_today_received);
+        init();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mTodayPackagesAdapter.clear();
+        if (viewMode.equals("receipts")){
+            populateTodayReceivedList();
+        } else if (viewMode.equals("deliveries")) {
+            populateDeliveriesList();
+        } else {
+            mProgressBar.setVisibility(View.INVISIBLE);
+            Toast.makeText(PackageListActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private void init() {
+        // This defines the usage of the view
+        Log.e(APP_TAG, "ViewModeRequested: " + getIntent().getStringExtra("viewMode"));
+        viewMode = getIntent().getStringExtra("viewMode");
 
         mNoPackagesFoundTextView = (TextView) findViewById(R.id.no_packages_found_textview);
         mNoPackagesFoundTextView.setVisibility(View.INVISIBLE);
         mProgressBar = (ProgressBar) findViewById(R.id.mtProgressBar);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.today_packages_recycler_view);
-        mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList, TodayReceivedActivity.this);
+        mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList, PackageListActivity.this, viewMode);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -63,14 +86,7 @@ public class TodayReceivedActivity extends AppCompatActivity {
         transporterUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mTodayPackagesAdapter.clear();
-        populateList();
-    }
-
-    private void populateList() {
+    private void populateTodayReceivedList() {
 
         querySynthKey = transporterUID + "-" + CodeHelper.getDateNowToString();
 
@@ -94,7 +110,40 @@ public class TodayReceivedActivity extends AppCompatActivity {
                     Log.d(APP_TAG, "No data found with the synthetic key of " + querySynthKey);
                     mProgressBar.setVisibility(View.INVISIBLE);
                     mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
-                    Toast.makeText(TodayReceivedActivity.this, "You haven't recorded any package today", Toast.LENGTH_SHORT);
+                    Toast.makeText(PackageListActivity.this, "There are no receipts for today", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(APP_TAG, databaseError.getMessage());
+            }
+        });
+    }
+
+    private void populateDeliveriesList() {
+
+        Query query = mDatabaseReference.child("deliveries").
+                orderByChild("assignedDelivererFUID").
+                equalTo(transporterUID);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(APP_TAG, "Query was successful");
+                if (dataSnapshot.exists()) {
+                    Log.d(APP_TAG, "Previewing data...");
+                    for (DataSnapshot fpackageSnapshot : dataSnapshot.getChildren()) {
+                        FPackage fPackage = parseDataSnapshotToPackage(fpackageSnapshot);
+                        mFPackageList.add(fPackage);
+                    }
+
+                    mTodayPackagesAdapter.notifyDataSetChanged();
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                } else {
+                    Log.d(APP_TAG, "No deliveries found for " + transporterUID);
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
+                    Toast.makeText(PackageListActivity.this, "There are no deliveries for today", Toast.LENGTH_SHORT).show();
                 }
             }
 

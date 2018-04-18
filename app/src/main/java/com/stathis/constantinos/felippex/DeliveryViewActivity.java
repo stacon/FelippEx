@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 public class DeliveryViewActivity extends AppCompatActivity {
 
@@ -97,7 +99,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
         senderPhoneNumberTextView = (TextView) findViewById(R.id.sender_phone_number_textview);
         senderAddressTextView = (TextView) findViewById(R.id.sender_address_textview);
 
-        packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
+                packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
 
         markAsDeliveredButton = (Button) findViewById(R.id.mark_as_delivered_button);
         editDeliveryButton = (Button) findViewById(R.id.edit_delivery_button);
@@ -163,13 +165,34 @@ public class DeliveryViewActivity extends AppCompatActivity {
 
                     Log.d(APP_TAG, "Sender :" + ds.child("sender/fullName").getValue().toString());
 
+                    final String senderAddress =ds.child("sender/address").getValue().toString();
                     senderFullNameTextView.setText(ds.child("sender/fullName").getValue().toString());
-                    senderAddressTextView.setText(ds.child("sender/address").getValue().toString());
                     senderPhoneNumberTextView.setText(ds.child("sender/phoneNumber").getValue().toString());
+                    senderAddressTextView.setText(senderAddress);
 
                     receiverFullNameTextView.setText(ds.child("receiver/fullName").getValue().toString());
-                    receiverAddressTextView.setText(ds.child("receiver/address").getValue().toString());
                     receiverPhoneNumberTextView.setText(ds.child("receiver/phoneNumber").getValue().toString());
+                    final String receiverAddress = ds.child("receiver/address").getValue().toString();
+                    receiverAddressTextView.setText(receiverAddress);
+
+                    receiverAddressTextView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String uri = "http://maps.google.co.in/maps?q=\"" + receiverAddress + "\"";
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                            startActivity(intent);
+                        }
+                    });
+
+                    senderAddressTextView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String uri = "http://maps.google.co.in/maps?q=\"" + senderAddress + "\"";
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                            startActivity(intent);
+                        }
+                    });
+
                     photoUrl = ds.child("imageRefUri").getValue().toString();
                     Log.e(APP_TAG, "PhotoUrl :" + photoUrl);
                     getPackagePhotoAndSetToImageView();
