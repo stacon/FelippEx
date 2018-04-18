@@ -33,11 +33,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        packageDeliveranceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PackageListActivity.class);
+                intent.putExtra("viewMode", "deliveries");
+                Log.d(APP_TAG, "Requested package list with MODE: deliveries");
+                startActivity(intent);
+            }
+        });
+
         packagesListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(APP_TAG, "Today\'s package list option clicked");
-                Intent intent = new Intent(MainActivity.this, TodayReceivedActivity.class);
+                Intent intent = new Intent(MainActivity.this, PackageListActivity.class);
+                intent.putExtra("viewMode", "receipts");
+                Log.d(APP_TAG, "Requested package list with MODE: receipts");
                 startActivity(intent);
             }
         });

@@ -14,10 +14,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -54,11 +57,11 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private TextView senderAddressTextView;
 
     private ImageView packagePictureImageView;
-    private MapView receiverAddressMapView;
 
     private Button markAsDeliveredButton;
     private Button editDeliveryButton;
     private Button deleteDeliveryButton;
+    // TODO: Create a navigate button Function
 
     private Intent intentReceived;
 
@@ -95,7 +98,6 @@ public class DeliveryViewActivity extends AppCompatActivity {
         senderAddressTextView = (TextView) findViewById(R.id.sender_address_textview);
 
         packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
-        receiverAddressMapView = (MapView) findViewById(R.id.receiver_address_mapview);
 
         markAsDeliveredButton = (Button) findViewById(R.id.mark_as_delivered_button);
         editDeliveryButton = (Button) findViewById(R.id.edit_delivery_button);
@@ -109,13 +111,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
             markAsDeliveredButton.setEnabled(false);
             markAsDeliveredButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
             // TODO: set editButton
-            deleteDeliveryButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    
-                }
-            });
-
+            initDeleteButton();
         }
 
         if (viewTypeRequested.equals("viewDelivery")) {
@@ -129,6 +125,31 @@ public class DeliveryViewActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
         mStorage = FirebaseStorage.getInstance();
 
+    }
+
+    private void initDeleteButton() {
+        deleteDeliveryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(DeliveryViewActivity.this ,"Deleting delivery record...", Toast.LENGTH_SHORT).show();
+                disableUI();
+                mDatabase.child(transactionID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(DeliveryViewActivity.this, "Deletion was successful", Toast.LENGTH_LONG).show();
+                        deletePhotoFromFirebase();
+                        finish();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(DeliveryViewActivity.this, "Deletion FAILED", Toast.LENGTH_LONG).show();
+                        enableUI();
+                    }
+                });
+
+            }
+        });
     }
 
     private void queryDeliveryAndApplyToView() {
@@ -188,9 +209,28 @@ public class DeliveryViewActivity extends AppCompatActivity {
 
     }
 
+    private void disableUI() {
+        mScrollView.setVisibility(View.INVISIBLE);
+        acProgressBar.setVisibility(View.VISIBLE);
+    }
+
     private void enableUI() {
         acProgressBar.setVisibility(View.INVISIBLE);
         mScrollView.setVisibility(View.VISIBLE);
+    }
+
+    private void deletePhotoFromFirebase() {
+        mStorage.getReferenceFromUrl(photoUrl).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(APP_TAG, "Photo Deleted successfully");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(APP_TAG, "Photo Deletion FAILED");
+            }
+        });
     }
 
 }

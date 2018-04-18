@@ -16,7 +16,7 @@ public class FPackage {
 
     // Firebase query synthetics
     private String syntheticReceiptValue; // Synthetic Value pReceiverFUID-date
-    private String syntheticDeliveryValue; // Synthetic Value pReceiverFUID-date-assignedDelivererFUID(-delivered)opt
+    private String syntheticDeliveryValue; // Synthetic Value pReceiverFUID-date-assignedDelivererFUID
 
     private boolean delivered;
 
@@ -42,10 +42,6 @@ public class FPackage {
 
     public Transactor getReceiver() {
         return tReceiver;
-    }
-
-    public String getpReceiver() {
-        return pReceiverFUID;
     }
 
     public String getAssignedDelivererFUID() {
@@ -100,6 +96,10 @@ public class FPackage {
 
     public void setSyntheticDeliveryValue(String syntheticDeliveryValue) {
         this.syntheticDeliveryValue = syntheticDeliveryValue;
+    }
+
+    public void setSyntheticDeliveryValue() {
+        this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + assignedDelivererFUID;
     }
 
     public String getTransactionId() {

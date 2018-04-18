@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -60,7 +61,12 @@ public class TodayReceivedActivity extends AppCompatActivity {
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         transporterUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mTodayPackagesAdapter.clear();
         populateList();
     }
 
@@ -86,7 +92,9 @@ public class TodayReceivedActivity extends AppCompatActivity {
                     mProgressBar.setVisibility(View.INVISIBLE);
                 } else {
                     Log.d(APP_TAG, "No data found with the synthetic key of " + querySynthKey);
+                    mProgressBar.setVisibility(View.INVISIBLE);
                     mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
+                    Toast.makeText(TodayReceivedActivity.this, "You haven't recorded any package today", Toast.LENGTH_SHORT);
                 }
             }
 
