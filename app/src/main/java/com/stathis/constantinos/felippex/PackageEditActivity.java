@@ -1,7 +1,6 @@
 package com.stathis.constantinos.felippex;
 
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -22,8 +21,10 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -71,7 +72,7 @@ public class PackageEditActivity extends AppCompatActivity {
     private String mCurrentPhotoPath;
     private String imageNameHashed;
     private Bitmap imageOutput;
-    private Uri downloadUrl;
+    private Uri imageUrl;
 
     // Delivery Button
     private Button mPackageReceivedButton;
@@ -90,7 +91,6 @@ public class PackageEditActivity extends AppCompatActivity {
     // EditMode switch in Boolean
     private Boolean editMode = false;
     private String transcationIdForEdit;
-    private String photoUrlForEdit;
     private FPackage packageForEdit;
 
     // Error status and boolean for record procedure
@@ -126,11 +126,6 @@ public class PackageEditActivity extends AppCompatActivity {
         // Package received button
         mPackageReceivedButton = findViewById(R.id.package_received_button);
 
-        // Firebase related assignments
-        mStorage = FirebaseStorage.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
-        mStorageRef = mStorage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
-
         // Transporter user assignment
         transporter = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -142,6 +137,13 @@ public class PackageEditActivity extends AppCompatActivity {
             editMode = getIntent().getExtras().getBoolean("editMode");
             Log.d(APP_TAG, "The package view activity is now on EDIT MODE");
             transcationIdForEdit = getIntent().getStringExtra("transactionId");
+        }
+
+        // Firebase related assignments
+        mStorage = FirebaseStorage.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
+        if (!editMode) {
+            mStorageRef = mStorage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
         }
 
         if (editMode) {
@@ -171,7 +173,7 @@ public class PackageEditActivity extends AppCompatActivity {
     // Fired upon clicking receive package
     public void recordDelivery() {
         Log.d(APP_TAG, "Attempting to assign transactors");
-        assignTransactorsAttemp();
+        assignTransactors();
         if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
         Log.d(APP_TAG, "Transactors assignment succeeded");
         checkIfImageHasBeenSetOnImageView();
@@ -207,18 +209,27 @@ public class PackageEditActivity extends AppCompatActivity {
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                downloadUrl = taskSnapshot.getDownloadUrl();
-                deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), downloadUrl.toString());
+                imageUrl = taskSnapshot.getDownloadUrl();
+                deliveryPackage = new FPackage(sender,receiver,transporter.getUid(), imageUrl.toString());
                 if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
                 Log.d(APP_TAG, "Image upload and Uri retrieval succeeded");
                 Log.d(APP_TAG, "Attempting to store delivery info to database");
-                mDatabase.child("deliveries").push().setValue(deliveryPackage);
-                mProgressBar.setVisibility(View.INVISIBLE);
-                enableUI();
-                leaveActivity();
+                mDatabase.push().setValue(deliveryPackage).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(PackageEditActivity.this, "The delivery was recorded successfully", Toast.LENGTH_SHORT).show();
+                        leaveActivity();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(PackageEditActivity.this, "FAILED to store delivery!", Toast.LENGTH_SHORT).show();
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                        enableUI();
+                    }
+                });
             }
         });
-
     }
 
     // Fires once Photo package is clicked
@@ -305,9 +316,147 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG,"Image set on ImageView");
     }
 
+    // 2. Editing Functions
+    private void queryTransactionAndFillFields() {
+        disableUI();
+        mProgressBar.setVisibility(View.VISIBLE);
+        Query deliveryQuery = mDatabase.orderByKey().equalTo(this.transcationIdForEdit);
+        deliveryQuery.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(APP_TAG, "Query for EDITING was successful for id: " + transcationIdForEdit);
+                for(DataSnapshot ds: dataSnapshot.getChildren()) {
+                    packageForEdit = ds.getValue(FPackage.class);
+                    setEditFields(packageForEdit);
+
+                    mStorageRef = mStorage.getReferenceFromUrl(imageUrl.toString());
+                    getPackagePhotoAndSetToImageView();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(APP_TAG, databaseError.getMessage());
+            }
+        });
+    }
+
+    private void setEditFields(FPackage packageSnapshot) {
+        mSendersName.setText(packageSnapshot.getSender().getFullName());
+        mSendersPhone.setText(packageSnapshot.getSender().getPhoneNumber());
+        mSendersAddress.setText(packageSnapshot.getSender().getAddress());
+        mReceiversName.setText(packageSnapshot.getReceiver().getFullName());
+        mReceiversPhone.setText(packageSnapshot.getReceiver().getPhoneNumber());
+        mReceiversAddress.setText(packageSnapshot.getReceiver().getAddress());
+        imageUrl = Uri.parse(packageSnapshot.getImageRefUri());
+    }
+
+    private void getPackagePhotoAndSetToImageView() {
+        Log.d(APP_TAG, "getPackagePhoto() fired!");
+        StorageReference ref = mStorage.getReferenceFromUrl(imageUrl.toString());
+        try {
+            final File localFile = File.createTempFile("Images", "bmp");
+            ref.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    Log.d(APP_TAG, "Adding photo at imageView");
+                    Bitmap packagePhotoBitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                    packageImageView.setImageBitmap(packagePhotoBitmap);
+                    enableUI();
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(APP_TAG, e.getMessage());
+                    enableUI();
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void saveChangesOnDelivery() {
+        Log.d(APP_TAG, "EDIT mode: Attempting to assign transactors");
+        assignTransactors();
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
+        Log.d(APP_TAG, "EDIT mode: Transactors assignment succeeded");
+        checkIfImageHasBeenSetOnImageView();
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
+        Log.d(APP_TAG, "EDIT mode: Attempting to assign delivery information to FPackage Object");
+        disableUI();
+        mProgressBar.setVisibility(View.VISIBLE);
+        attemptToStoreChanges();
+        if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
+    }
+
+    private void attemptToStoreChanges() {
+        Toast.makeText(this, "Please wait while saving the changes...", Toast.LENGTH_LONG).show();
+        packageImageView.setDrawingCacheEnabled(true);
+        packageImageView.buildDrawingCache();
+        Bitmap bitmap = packageImageView.getDrawingCache();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = mStorageRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                error = true;
+                errorStatus = "Image Upload Failed. Please try again later";
+                if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
+                mProgressBar.setVisibility(View.INVISIBLE);
+                enableUI();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                packageForEdit.setSender(sender);
+                packageForEdit.setReceiver(receiver);
+                packageForEdit.setImageRefUri(imageUrl.toString());
+
+                Log.d(APP_TAG, "NEW image upload and Uri retrieval succeeded");
+                Log.d(APP_TAG, "Attempting to store changes to database");
+                attemptToUpdateDelivery();
+            }
+        });
+
+    }
+
+    private void attemptToUpdateDelivery() {
+        mDatabase.child(transcationIdForEdit).setValue(packageForEdit).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Toast.makeText(PackageEditActivity.this, "Changes where made successfully", Toast.LENGTH_SHORT).show();
+                disableUI();
+                leaveActivity();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(PackageEditActivity.this, "FAILURE: Changes weren't saved", Toast.LENGTH_SHORT).show();
+                mProgressBar.setVisibility(View.INVISIBLE);
+                enableUI();
+            }
+        });
+    }
+
+    // 3. Shared Functions
+
+    // Finishes current activity along with some others tasks
+    private void leaveActivity() {
+        Log.d(APP_TAG, "Leaving PackageEditActivity");
+        finish();
+    }
+
     // Attempting to assign sender and receiver as Transactor Objects. Sets error if fail
-    private void assignTransactorsAttemp() {
-        Log.d(APP_TAG, "ssignTransactors() fired");
+    private void assignTransactors() {
+        Log.d(APP_TAG, "assignTransactors() fired");
         String senderNameInput = mSendersName.getText().toString();
         String senderPhoneInput = mSendersPhone.getText().toString();
         String senderAddressInput = mSendersAddress.getText().toString();
@@ -345,6 +494,14 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Receiver transactor SET");
     }
 
+    // Preparing and rotating Image for the ImageView and mStorage
+    private Bitmap prepareImageForPreview(Bitmap image) {
+        Log.d(APP_TAG, "Preparing image for preview");
+        Matrix matrix = new Matrix();
+        matrix.preRotate(90);
+        return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
+    }
+
     // Checks if image is set on imageview or it saves an error
     private void checkIfImageHasBeenSetOnImageView() {
         if (packageImageView.getDrawable() == null) {
@@ -362,83 +519,6 @@ public class PackageEditActivity extends AppCompatActivity {
                         (receiver.getFullName().hashCode() * 18) +
                         (lTimestamp.hashCode() * 15)) + ".jpg";
         Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
-    }
-
-    // 2. Editing Functions
-    private void queryTransactionAndFillFields() {
-        Query deliveryQuery = mDatabase.orderByKey().equalTo(this.transcationIdForEdit);
-        deliveryQuery.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(APP_TAG, "Query for EDITING was successful for id: " + transcationIdForEdit);
-                for(DataSnapshot ds: dataSnapshot.getChildren()) {
-                    packageForEdit = ds.getValue(FPackage.class);
-                    setEditFields(packageForEdit);
-
-                        photoUrlForEdit = packageForEdit.getImageRefUri();
-                        getPackagePhotoAndSetToImageView();
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e(APP_TAG, databaseError.getMessage());
-            }
-        });
-    }
-
-    private void setEditFields(FPackage packageSnapshot) {
-        mSendersName.setText(packageSnapshot.getSender().getFullName());
-        mSendersPhone.setText(packageSnapshot.getSender().getPhoneNumber());
-        mSendersAddress.setText(packageSnapshot.getSender().getAddress());
-        mReceiversName.setText(packageSnapshot.getReceiver().getFullName());
-        mReceiversPhone.setText(packageSnapshot.getReceiver().getPhoneNumber());
-        mReceiversAddress.setText(packageSnapshot.getReceiver().getAddress());
-    }
-
-    private void getPackagePhotoAndSetToImageView() {
-        Log.d(APP_TAG, "getPackagePhoto() fired!");
-        StorageReference ref = mStorage.getReferenceFromUrl(photoUrlForEdit);
-        try {
-            final File localFile = File.createTempFile("Images", "bmp");
-            ref.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(APP_TAG, "Adding photo at imageView");
-                    Bitmap packagePhotoBitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
-                    packagePhotoBitmap = prepareImageForPreview(packagePhotoBitmap);
-                    packageImageView.setImageBitmap(packagePhotoBitmap);
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.e(APP_TAG, e.getMessage());
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void saveChangesOnDelivery() {
-        // TODO: do stuff
-    }
-    // 3. Common Functions
-
-    // Finishes current activity along with some others tasks
-    private void leaveActivity() {
-        Toast.makeText(this, "Delivery has been recorded successfully", Toast.LENGTH_SHORT).show();
-        Log.d(APP_TAG, "Leaving PackageEditActivity");
-        finish();
-    }
-
-    // Preparing and rotating Image for the ImageView and mStorage
-    private Bitmap prepareImageForPreview(Bitmap image) {
-        Log.d(APP_TAG, "Preparing image for preview");
-        Matrix matrix = new Matrix();
-        matrix.preRotate(90);
-        return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
     }
 
     // Disabling UI view elements (e.g. for loading)
