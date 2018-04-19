@@ -22,11 +22,7 @@ public class Transactor {
     }
 
     public void setFullName(String fullName) {
-        if (isValidFullName(fullName)) {
             this.fullName = fullName;
-        } else {
-            throw new InvalidParameterException("This full name is invalid");
-        }
 
     }
 
@@ -35,12 +31,7 @@ public class Transactor {
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        if (isValidPhoneNumber(phoneNumber)) {
             this.phoneNumber = phoneNumber;
-        } else {
-            throw new InvalidParameterException("This phone number is invalid");
-        }
-
     }
 
     public String getAddress() {

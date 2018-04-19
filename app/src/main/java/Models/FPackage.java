@@ -3,8 +3,8 @@ package Models;
 import com.stathis.constantinos.felippex.CodeHelper;
 
 public class FPackage {
-    private Transactor tSender;
-    private Transactor tReceiver;
+    private Transactor sender;
+    private Transactor receiver;
     private String transactionId;
 
     private String pReceiverFUID;
@@ -20,9 +20,9 @@ public class FPackage {
 
     private boolean delivered;
 
-    public FPackage(Transactor tSender, Transactor tReceiver, String pReceiverFUID, String imageRefUri) {
-        this.tSender = tSender;
-        this.tReceiver = tReceiver;
+    public FPackage(Transactor sender, Transactor receiver, String pReceiverFUID, String imageRefUri) {
+        this.sender = sender;
+        this.receiver = receiver;
         this.pReceiverFUID = pReceiverFUID;
         this.assignedDelivererFUID = "";
         this.delivered = false;
@@ -31,18 +31,13 @@ public class FPackage {
         this.dateReceived = CodeHelper.getDateNowToString();
         this.timeReceived = CodeHelper.getTimeNowToString();
 
-        this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
+        if (this.syntheticReceiptValue == null) {
+            this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
+        }
+
     }
 
     public FPackage () {}
-
-    public Transactor getSender() {
-        return tSender;
-    }
-
-    public Transactor getReceiver() {
-        return tReceiver;
-    }
 
     public String getAssignedDelivererFUID() {
         return assignedDelivererFUID;
@@ -87,7 +82,9 @@ public class FPackage {
     }
 
     public void setSyntheticReceiptValue(String syntheticReceiptValue) {
-        this.syntheticReceiptValue = syntheticReceiptValue;
+        if (this.syntheticReceiptValue == null) {
+            this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
+        }
     }
 
     public String getSyntheticDeliveryValue() {
@@ -110,28 +107,28 @@ public class FPackage {
         this.transactionId = transactionId;
     }
 
-    public Transactor gettSender() {
-        return tSender;
-    }
-
-    public void settSender(Transactor tSender) {
-        this.tSender = tSender;
-    }
-
-    public Transactor gettReceiver() {
-        return tReceiver;
-    }
-
-    public void settReceiver(Transactor tReceiver) {
-        this.tReceiver = tReceiver;
-    }
-
     public String getpReceiverFUID() {
         return pReceiverFUID;
     }
 
     public void setpReceiverFUID(String pReceiverFUID) {
         this.pReceiverFUID = pReceiverFUID;
+    }
+
+    public Transactor getSender() {
+        return sender;
+    }
+
+    public void setSender(Transactor sender) {
+        this.sender = sender;
+    }
+
+    public Transactor getReceiver() {
+        return receiver;
+    }
+
+    public void setReceiver(Transactor receiver) {
+        this.receiver = receiver;
     }
 
 }

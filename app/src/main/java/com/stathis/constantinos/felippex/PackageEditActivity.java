@@ -1,6 +1,7 @@
 package com.stathis.constantinos.felippex;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -18,14 +19,20 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -46,6 +53,8 @@ public class PackageEditActivity extends AppCompatActivity {
     static final int REQUEST_TAKE_PHOTO = 1;
 
     // Form related variables
+    private TextView mTitleTextView;
+
     private ScrollView mScrollView;
     private EditText mSendersName;
     private EditText mSendersPhone;
@@ -71,12 +80,18 @@ public class PackageEditActivity extends AppCompatActivity {
     private FPackage deliveryPackage;
 
     // Firebase related functions
-    private FirebaseStorage storage;
+    private FirebaseStorage mStorage;
     private StorageReference mStorageRef;
     private DatabaseReference mDatabase;
 
     // Transporter associated Firebase user
     private FirebaseUser transporter;
+
+    // EditMode switch in Boolean
+    private Boolean editMode = false;
+    private String transcationIdForEdit;
+    private String photoUrlForEdit;
+    private FPackage packageForEdit;
 
     // Error status and boolean for record procedure
     private Boolean error = false;
@@ -89,7 +104,11 @@ public class PackageEditActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_package_edit);
+        init();
+    }
 
+    private void init() {
+        mTitleTextView = (TextView) findViewById(R.id.retrieval_form_textView);
         mScrollView = (ScrollView) findViewById(R.id.main_scrollView);
         // Senders information var assignment
         mSendersName = (EditText) findViewById(R.id.sender_fullName_input);
@@ -108,9 +127,9 @@ public class PackageEditActivity extends AppCompatActivity {
         mPackageReceivedButton = findViewById(R.id.package_received_button);
 
         // Firebase related assignments
-        storage = FirebaseStorage.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-        mStorageRef = storage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
+        mStorage = FirebaseStorage.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
+        mStorageRef = mStorage.getReferenceFromUrl("gs://felippex-f5ace.appspot.com/");
 
         // Transporter user assignment
         transporter = FirebaseAuth.getInstance().getCurrentUser();
@@ -119,14 +138,38 @@ public class PackageEditActivity extends AppCompatActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.deliveryProgressBar);
         mProgressBar.setVisibility(View.INVISIBLE);
 
+        if (getIntent().hasExtra("editMode")) {
+            editMode = getIntent().getExtras().getBoolean("editMode");
+            Log.d(APP_TAG, "The package view activity is now on EDIT MODE");
+            transcationIdForEdit = getIntent().getStringExtra("transactionId");
+        }
+
+        if (editMode) {
+            queryTransactionAndFillFields();
+            mTitleTextView.setText(transcationIdForEdit);
+            mPackageReceivedButton.setText(R.string.save_changes_button);
+            mPackageReceivedButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    saveChangesOnDelivery();
+                }
+            });
+        } else {
+            mPackageReceivedButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    recordDelivery();
+                }
+            });
+        }
 
         Log.d(APP_TAG, "PackageEdit activity started");
-
     }
 
-    // Fired upon clicking receive package
-    public void recordDelivery(View V) {
+    // 1. New Package Functions
 
+    // Fired upon clicking receive package
+    public void recordDelivery() {
         Log.d(APP_TAG, "Attempting to assign transactors");
         assignTransactorsAttemp();
         if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
@@ -321,19 +364,81 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
     }
 
-    // Preparing and rotating Image for the ImageView and storage
-    private Bitmap prepareImageForPreview(Bitmap image) {
-        Log.d(APP_TAG, "Preparing image for preview");
-        Matrix matrix = new Matrix();
-        matrix.preRotate(90);
-        return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
+    // 2. Editing Functions
+    private void queryTransactionAndFillFields() {
+        Query deliveryQuery = mDatabase.orderByKey().equalTo(this.transcationIdForEdit);
+        deliveryQuery.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(APP_TAG, "Query for EDITING was successful for id: " + transcationIdForEdit);
+                for(DataSnapshot ds: dataSnapshot.getChildren()) {
+                    packageForEdit = ds.getValue(FPackage.class);
+                    setEditFields(packageForEdit);
+
+                        photoUrlForEdit = packageForEdit.getImageRefUri();
+                        getPackagePhotoAndSetToImageView();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(APP_TAG, databaseError.getMessage());
+            }
+        });
     }
+
+    private void setEditFields(FPackage packageSnapshot) {
+        mSendersName.setText(packageSnapshot.getSender().getFullName());
+        mSendersPhone.setText(packageSnapshot.getSender().getPhoneNumber());
+        mSendersAddress.setText(packageSnapshot.getSender().getAddress());
+        mReceiversName.setText(packageSnapshot.getReceiver().getFullName());
+        mReceiversPhone.setText(packageSnapshot.getReceiver().getPhoneNumber());
+        mReceiversAddress.setText(packageSnapshot.getReceiver().getAddress());
+    }
+
+    private void getPackagePhotoAndSetToImageView() {
+        Log.d(APP_TAG, "getPackagePhoto() fired!");
+        StorageReference ref = mStorage.getReferenceFromUrl(photoUrlForEdit);
+        try {
+            final File localFile = File.createTempFile("Images", "bmp");
+            ref.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    Log.d(APP_TAG, "Adding photo at imageView");
+                    Bitmap packagePhotoBitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
+                    packagePhotoBitmap = prepareImageForPreview(packagePhotoBitmap);
+                    packageImageView.setImageBitmap(packagePhotoBitmap);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(APP_TAG, e.getMessage());
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void saveChangesOnDelivery() {
+        // TODO: do stuff
+    }
+    // 3. Common Functions
 
     // Finishes current activity along with some others tasks
     private void leaveActivity() {
         Toast.makeText(this, "Delivery has been recorded successfully", Toast.LENGTH_SHORT).show();
         Log.d(APP_TAG, "Leaving PackageEditActivity");
         finish();
+    }
+
+    // Preparing and rotating Image for the ImageView and mStorage
+    private Bitmap prepareImageForPreview(Bitmap image) {
+        Log.d(APP_TAG, "Preparing image for preview");
+        Matrix matrix = new Matrix();
+        matrix.preRotate(90);
+        return Bitmap.createBitmap(image, 0,0,image.getWidth(),image.getHeight(), matrix, true);
     }
 
     // Disabling UI view elements (e.g. for loading)

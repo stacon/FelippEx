@@ -165,8 +165,8 @@ public class PackageListActivity extends AppCompatActivity {
         } catch (NullPointerException e) {
             Log.e(APP_TAG, "Something went wrong on getting names from snapshot");
         }
-        fPackage.settSender(sender);
-        fPackage.settReceiver(receiver);
+        fPackage.setSender(sender);
+        fPackage.setReceiver(receiver);
         fPackage.setTransactionId(fpackageSnapshot.getKey());
 
         return fPackage;

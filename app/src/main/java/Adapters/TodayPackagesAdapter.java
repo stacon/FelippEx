@@ -9,9 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.stathis.constantinos.felippex.DeliveryViewActivity;
+import com.stathis.constantinos.felippex.PackageEditActivity;
 import com.stathis.constantinos.felippex.R;
 
 import java.util.List;
@@ -28,7 +28,6 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView transactionId, senderName, receiverName;
         public Button viewButton, editButton;
-
 
         public MyViewHolder(View view) {
             super(view);
@@ -52,7 +51,7 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.today_delivery_list_row, parent, false);
+                .inflate(R.layout.delivery_list_row, parent, false);
 
         return new MyViewHolder(itemView);
     }
@@ -60,9 +59,35 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         final FPackage fPackage = tPackageList.get(position);
+        setTextViews(holder, fPackage);
+        setViewButtonAction(holder, fPackage);
+        if (mode.equals("receipts")) {
+            setEditButtonAction(holder, fPackage);
+        }
+    }
+
+    @Override
+    public int getItemCount() {
+        return tPackageList.size();
+    }
+
+    public void clear() {
+        final int size = tPackageList.size();
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                tPackageList.remove(0);
+            }
+            notifyItemRangeRemoved(0, size);
+        }
+    }
+
+    private void setTextViews(MyViewHolder holder, FPackage fPackage) {
         holder.transactionId.setText(fPackage.getTransactionId());
         holder.senderName.setText(fPackage.getSender().getFullName());
         holder.receiverName.setText(fPackage.getReceiver().getFullName());
+    }
+
+    private void setViewButtonAction(MyViewHolder holder, final FPackage fPackage) {
         holder.viewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -84,23 +109,19 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
                 context.startActivity(intent);
             }
         });
-        // TODO: holder editButton with if condition mode set to "receipts"
-
     }
 
-    @Override
-    public int getItemCount() {
-        return tPackageList.size();
-    }
-
-    public void clear() {
-        final int size = tPackageList.size();
-        if (size > 0) {
-            for (int i = 0; i < size; i++) {
-                tPackageList.remove(0);
+    private void setEditButtonAction(MyViewHolder holder, final FPackage fPackage) {
+        holder.editButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, PackageEditActivity.class);
+                intent.putExtra("editMode", true);
+                intent.putExtra("transactionId", fPackage.getTransactionId());
+                context.startActivity(intent);
             }
-            notifyItemRangeRemoved(0, size);
-        }
+        });
     }
+
 }
 

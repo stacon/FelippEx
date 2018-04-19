@@ -26,7 +26,7 @@
     <string name="receivers_address_hint_editText">Receiver\'s address</string>
 
     <string name="photograph_the_package_button">Photo the package</string>
-
+    <string name="save_changes_button">Save <Changes></Changes></string>
     <string name="package_received_button">Package Received</string>
     <!--END OF New/Edit package view-->
 

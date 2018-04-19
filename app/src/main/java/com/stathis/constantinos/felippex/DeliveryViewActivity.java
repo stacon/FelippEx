@@ -1,5 +1,6 @@
 package com.stathis.constantinos.felippex;
 
+import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -35,6 +36,8 @@ import com.google.firebase.storage.StorageReference;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+
+import Models.FPackage;
 
 public class DeliveryViewActivity extends AppCompatActivity {
 
@@ -112,7 +115,15 @@ public class DeliveryViewActivity extends AppCompatActivity {
         if (viewTypeRequested.equals("viewPackage")) {
             markAsDeliveredButton.setEnabled(false);
             markAsDeliveredButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
-            // TODO: set editButton
+            editDeliveryButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(DeliveryViewActivity.this, PackageEditActivity.class);
+                    intent.putExtra("editMode", true);
+                    intent.putExtra("transactionId", transactionID);
+                    startActivity(intent);
+                }
+            });
             initDeleteButton();
         }
 
@@ -159,26 +170,34 @@ public class DeliveryViewActivity extends AppCompatActivity {
         deliveryQuery.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(APP_TAG, "Query was successful.");
+                Log.d(APP_TAG, "Query was successful for id: " + transactionID);
                 for(DataSnapshot ds: dataSnapshot.getChildren()) {
                     titleIdLabelTextView.setText(ds.getKey());
 
-                    Log.d(APP_TAG, "Sender :" + ds.child("sender/fullName").getValue().toString());
+                    final FPackage packR = ds.getValue(FPackage.class);
 
-                    final String senderAddress =ds.child("sender/address").getValue().toString();
-                    senderFullNameTextView.setText(ds.child("sender/fullName").getValue().toString());
-                    senderPhoneNumberTextView.setText(ds.child("sender/phoneNumber").getValue().toString());
-                    senderAddressTextView.setText(senderAddress);
+                    senderFullNameTextView.setText(packR.getSender().getFullName());
+                    senderPhoneNumberTextView.setText(packR.getSender().getPhoneNumber());
+                    senderAddressTextView.setText(packR.getSender().getAddress());
 
-                    receiverFullNameTextView.setText(ds.child("receiver/fullName").getValue().toString());
-                    receiverPhoneNumberTextView.setText(ds.child("receiver/phoneNumber").getValue().toString());
-                    final String receiverAddress = ds.child("receiver/address").getValue().toString();
-                    receiverAddressTextView.setText(receiverAddress);
+                    receiverFullNameTextView.setText(packR.getReceiver().getFullName());
+                    receiverPhoneNumberTextView.setText(packR.getReceiver().getPhoneNumber());
+                    receiverAddressTextView.setText(packR.getReceiver().getAddress());
+
+//                    final String senderAddress =ds.child("sender/address").getValue().toString();
+//                    senderFullNameTextView.setText(ds.child("sender/fullName").getValue().toString());
+//                    senderPhoneNumberTextView.setText(ds.child("sender/phoneNumber").getValue().toString());
+//                    senderAddressTextView.setText(senderAddress);
+//
+//                    receiverFullNameTextView.setText(ds.child("receiver/fullName").getValue().toString());
+//                    receiverPhoneNumberTextView.setText(ds.child("receiver/phoneNumber").getValue().toString());
+//                    final String receiverAddress = ds.child("receiver/address").getValue().toString();
+//                    receiverAddressTextView.setText(receiverAddress);
 
                     receiverAddressTextView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            String uri = "http://maps.google.co.in/maps?q=\"" + receiverAddress + "\"";
+                            String uri = "http://maps.google.co.in/maps?q=\"" + packR.getReceiver().getAddress() + "\"";
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                             startActivity(intent);
                         }
@@ -187,7 +206,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
                     senderAddressTextView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            String uri = "http://maps.google.co.in/maps?q=\"" + senderAddress + "\"";
+                            String uri = "http://maps.google.co.in/maps?q=\"" + packR.getSender().getAddress() + "\"";
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                             startActivity(intent);
                         }
