@@ -87,7 +87,7 @@ public class FPackage {
     }
     public void setSyntheticDeliveryValue() {
         if (this.pReceiverFUID != null && this.assignedDelivererFUID != null) {
-            this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + assignedDelivererFUID;
+            this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + this.assignedDelivererFUID + "-true";
             Log.d("FelippEx", " Synthetic Value has been set to: " + this.syntheticDeliveryValue + " successfully");
             return;
         }

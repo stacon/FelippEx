@@ -122,7 +122,7 @@ public class PackageListActivity extends AppCompatActivity {
     }
 
     private void populateDeliveriesList() {
-
+    // TODO: order by should be set to syntheticDeliveryKey with false as a value in the end
         Query query = mDatabaseReference.child("deliveries").
                 orderByChild("assignedDelivererFUID").
                 equalTo(transporterUID);

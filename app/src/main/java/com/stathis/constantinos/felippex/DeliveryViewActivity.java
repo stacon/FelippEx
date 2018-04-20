@@ -63,7 +63,6 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private Button markAsDeliveredButton;
     private Button editDeliveryButton;
     private Button deleteDeliveryButton;
-    // TODO: Create a navigate button Function
 
     private Intent intentReceived;
 
@@ -116,21 +115,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(DeliveryViewActivity.this ,"Deleting delivery record...", Toast.LENGTH_SHORT).show();
                 disableUI();
-                mDatabase.child(transactionID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(DeliveryViewActivity.this, "Deletion was successful", Toast.LENGTH_LONG).show();
-                        deletePhotoFromFirebase();
-                        finish();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(DeliveryViewActivity.this, "Deletion FAILED", Toast.LENGTH_LONG).show();
-                        enableUI();
-                    }
-                });
-
+                attemptToDeleteRecordFromFirebase();
             }
         });
     }
@@ -152,6 +137,37 @@ public class DeliveryViewActivity extends AppCompatActivity {
         markAsDeliveredButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
     }
 
+    private void attemptToDeleteRecordFromFirebase() {
+        mDatabase.child(transactionID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Toast.makeText(DeliveryViewActivity.this, "Deletion was successful", Toast.LENGTH_LONG).show();
+                attemptToDeletePhotoFromFirebase();
+                finish();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(DeliveryViewActivity.this, "Deletion FAILED", Toast.LENGTH_LONG).show();
+                enableUI();
+            }
+        });
+    }
+
+    private void attemptToDeletePhotoFromFirebase() {
+        mStorage.getReferenceFromUrl(photoUrl).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(APP_TAG, "Photo Deleted successfully");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(APP_TAG, "Photo Deletion FAILED");
+            }
+        });
+    }
+
     // 2. ViewTypeRequested = ViewDelivery related function ==================== //
 
     private void disableDeleteButton() {
@@ -165,6 +181,10 @@ public class DeliveryViewActivity extends AppCompatActivity {
     }
 
     // TODO: initMarkAsDeliveredButton()
+
+    // TODO: attemptToMarkDeliveryAsDelivered()
+    // needs to set delivered value to true
+    // needs to set
 
     // 3. Shared functions bewtween modes ====================================== //
 
@@ -280,17 +300,4 @@ public class DeliveryViewActivity extends AppCompatActivity {
         mScrollView.setVisibility(View.VISIBLE);
     }
 
-    private void deletePhotoFromFirebase() {
-        mStorage.getReferenceFromUrl(photoUrl).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Log.d(APP_TAG, "Photo Deleted successfully");
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(APP_TAG, "Photo Deletion FAILED");
-            }
-        });
-    }
 }
