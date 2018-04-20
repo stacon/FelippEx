@@ -110,6 +110,7 @@ public class PackageEditActivity extends AppCompatActivity {
     private void init() {
         mTitleTextView = (TextView) findViewById(R.id.retrieval_form_textView);
         mScrollView = (ScrollView) findViewById(R.id.main_scrollView);
+
         // Senders information var assignment
         mSendersName = (EditText) findViewById(R.id.sender_fullName_input);
         mSendersPhone = (EditText) findViewById(R.id.sender_phone_input);
@@ -147,20 +148,12 @@ public class PackageEditActivity extends AppCompatActivity {
         }
 
         if (editMode) {
-            queryTransactionAndFillFields();
-            mTitleTextView.setText(transcationIdForEdit);
-            mPackageReceivedButton.setText(R.string.save_changes_button);
-            mPackageReceivedButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    saveChangesOnDelivery();
-                }
-            });
+            editModeInitializationActions();
         } else {
             mPackageReceivedButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    recordDelivery();
+            recordDelivery();
                 }
             });
         }
@@ -168,7 +161,7 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "PackageEdit activity started");
     }
 
-    // 1. New Package Functions
+    // 1. New Delivery Functions =============================================== //
 
     // Fired upon clicking receive package
     public void recordDelivery() {
@@ -232,92 +225,33 @@ public class PackageEditActivity extends AppCompatActivity {
         });
     }
 
-    // Fires once Photo package is clicked
-    public void onRequestPhoto(View v) {
-        Log.d(APP_TAG, "Photo the package was clicked");
-        dispatchTakePictureIntent();
+    // Creates a unique hashed name for storing an image
+    private void createHashedImageName() {
+        String lTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        imageNameHashed =
+                Math.abs((sender.getFullName().hashCode() * 37) +
+                        (receiver.getFullName().hashCode() * 18) +
+                        (lTimestamp.hashCode() * 15)) + ".jpg";
+        Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
     }
 
-    // Following Snippets Source: https://developer.android.com/training/camera/photobasics.html
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-                Log.d(APP_TAG, "Attempt to create file slot for photo taking succeeded");
-            } catch (IOException ex) {
-                Log.e(APP_TAG,"Error occurred while creating the File");
+    // 2. Editing Functions ==================================================== //
+
+    // Inits edit mode
+    private void editModeInitializationActions() {
+        queryTransactionAndFillView();
+        mTitleTextView.setText(transcationIdForEdit);
+        mPackageReceivedButton.setText(R.string.save_changes_button);
+        mPackageReceivedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveChangesOnDelivery();
             }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                Log.d(APP_TAG, "Requesting camera for photo taking");
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
+        });
     }
 
-    // Creates a temp image file for the imageView
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    // Handling usage of camera resource result
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            setPic();
-        }
-    }
-
-    // Sets Picture at ImageView
-    private void setPic() {
-        Log.d(APP_TAG, "Attempting to set picture at ImageView placeholder");
-
-        // Get the dimensions of the View
-        int targetW = packageImageView.getWidth();
-        int targetH = packageImageView.getHeight();
-
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
-
-        imageOutput = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        packageImageView.setImageBitmap(prepareImageForPreview(imageOutput));
-        Log.d(APP_TAG,"Image set on ImageView");
-    }
-
-    // 2. Editing Functions
-    private void queryTransactionAndFillFields() {
+    // Queries the transaction id came from intent and fills view
+    private void queryTransactionAndFillView() {
         disableUI();
         mProgressBar.setVisibility(View.VISIBLE);
         Query deliveryQuery = mDatabase.orderByKey().equalTo(this.transcationIdForEdit);
@@ -341,6 +275,7 @@ public class PackageEditActivity extends AppCompatActivity {
         });
     }
 
+    // Sets editText fields and save imageUrl retrieved
     private void setEditFields(FPackage packageSnapshot) {
         mSendersName.setText(packageSnapshot.getSender().getFullName());
         mSendersPhone.setText(packageSnapshot.getSender().getPhoneNumber());
@@ -351,8 +286,9 @@ public class PackageEditActivity extends AppCompatActivity {
         imageUrl = Uri.parse(packageSnapshot.getImageRefUri());
     }
 
+    // Query image from Database based on imageUrl and set
     private void getPackagePhotoAndSetToImageView() {
-        Log.d(APP_TAG, "getPackagePhoto() fired!");
+        Log.d(APP_TAG, "getPackagePhotoAndSetToImageView() fired!");
         StorageReference ref = mStorage.getReferenceFromUrl(imageUrl.toString());
         try {
             final File localFile = File.createTempFile("Images", "bmp");
@@ -379,6 +315,7 @@ public class PackageEditActivity extends AppCompatActivity {
 
     }
 
+    // Action taken from Save Changes button OnClickListener
     private void saveChangesOnDelivery() {
         Log.d(APP_TAG, "EDIT mode: Attempting to assign transactors");
         assignTransactors();
@@ -393,6 +330,7 @@ public class PackageEditActivity extends AppCompatActivity {
         if (error) {Log.e(APP_TAG, errorStatus); error = false; return;}
     }
 
+    // Attempt to store changes to firebase sequence
     private void attemptToStoreChanges() {
         Toast.makeText(this, "Please wait while saving the changes...", Toast.LENGTH_LONG).show();
         packageImageView.setDrawingCacheEnabled(true);
@@ -401,14 +339,21 @@ public class PackageEditActivity extends AppCompatActivity {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
         byte[] data = baos.toByteArray();
+        attemptToUpdateImage(data);
 
+    }
+
+    // Attempts to store updated image (or the same) at Firebase storage service.
+    // On Success database information storing follows
+    private void attemptToUpdateImage(byte[] data) {
         UploadTask uploadTask = mStorageRef.putBytes(data);
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
                 error = true;
                 errorStatus = "Image Upload Failed. Please try again later";
-                if (error) {Log.e(APP_TAG, errorStatus);error = false; return;}
+                if (error) {
+                    Log.e(APP_TAG, errorStatus);error = false; return;}
                 mProgressBar.setVisibility(View.INVISIBLE);
                 enableUI();
             }
@@ -425,9 +370,9 @@ public class PackageEditActivity extends AppCompatActivity {
                 attemptToUpdateDelivery();
             }
         });
-
     }
 
+    // Attempts to store info to Firebase Realtime DB
     private void attemptToUpdateDelivery() {
         mDatabase.child(transcationIdForEdit).setValue(packageForEdit).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -446,13 +391,7 @@ public class PackageEditActivity extends AppCompatActivity {
         });
     }
 
-    // 3. Shared Functions
-
-    // Finishes current activity along with some others tasks
-    private void leaveActivity() {
-        Log.d(APP_TAG, "Leaving PackageEditActivity");
-        finish();
-    }
+    // 3. Shared Functions ===================================================== //
 
     // Attempting to assign sender and receiver as Transactor Objects. Sets error if fail
     private void assignTransactors() {
@@ -494,6 +433,60 @@ public class PackageEditActivity extends AppCompatActivity {
         Log.d(APP_TAG, "Receiver transactor SET");
     }
 
+    // Handling usage of camera resource result
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
+            setPic();
+        }
+    }
+
+    // Creates a temp image file for the imageView
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    // Sets Picture at ImageView
+    private void setPic() {
+        Log.d(APP_TAG, "Attempting to set picture at ImageView placeholder");
+
+        // Get the dimensions of the View
+        int targetW = packageImageView.getWidth();
+        int targetH = packageImageView.getHeight();
+
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        int photoW = bmOptions.outWidth;
+        int photoH = bmOptions.outHeight;
+
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        imageOutput = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+        packageImageView.setImageBitmap(prepareImageForPreview(imageOutput));
+        Log.d(APP_TAG,"Image set on ImageView");
+    }
+
+
     // Preparing and rotating Image for the ImageView and mStorage
     private Bitmap prepareImageForPreview(Bitmap image) {
         Log.d(APP_TAG, "Preparing image for preview");
@@ -511,14 +504,35 @@ public class PackageEditActivity extends AppCompatActivity {
         }
     }
 
-    // Creates a unique hashed name for storing an image
-    private void createHashedImageName() {
-        String lTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        imageNameHashed =
-                Math.abs((sender.getFullName().hashCode() * 37) +
-                        (receiver.getFullName().hashCode() * 18) +
-                        (lTimestamp.hashCode() * 15)) + ".jpg";
-        Log.d(APP_TAG, "Hashed image name created: " + imageNameHashed);
+    // Fires once Photo package is clicked
+    public void onRequestPhoto(View v) {
+        Log.d(APP_TAG, "Photo the package was clicked");
+        dispatchTakePictureIntent();
+    }
+
+    // Following Snippets Source: https://developer.android.com/training/camera/photobasics.html
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+                Log.d(APP_TAG, "Attempt to create file slot for photo taking succeeded");
+            } catch (IOException ex) {
+                Log.e(APP_TAG,"Error occurred while creating the File");
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                Log.d(APP_TAG, "Requesting camera for photo taking");
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+        }
     }
 
     // Disabling UI view elements (e.g. for loading)
@@ -531,5 +545,11 @@ public class PackageEditActivity extends AppCompatActivity {
     private void enableUI(){
         mScrollView.setVisibility(View.VISIBLE);
         mPackageReceivedButton.setEnabled(true);
+    }
+
+    // Finishes current activity along with some others tasks
+    private void leaveActivity() {
+        Log.d(APP_TAG, "Leaving PackageEditActivity");
+        finish();
     }
 }

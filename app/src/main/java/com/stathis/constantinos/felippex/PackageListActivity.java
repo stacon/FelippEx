@@ -155,7 +155,7 @@ public class PackageListActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private FPackage parseDataSnapshotToPackage(DataSnapshot fpackageSnapshot) {
+    private FPackage parseDataSnapshotToPackage(DataSnapshot fpackageSnapshot)  {
         FPackage fPackage = new FPackage();
         Transactor sender = new Transactor();
         Transactor receiver = new Transactor();

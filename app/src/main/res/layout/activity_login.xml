@@ -79,7 +79,7 @@
         android:background="@color/colorPrimary"
         android:text="@string/login"
 
-        android:onClick="signInExistingUser"
+        android:onClick="signIn"
 
         android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -37,6 +37,12 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        init();
+        Log.d(APP_TAG,"LoginActivity started");
+    }
+
+    // Init view elements and hook with vars
+    private void init() {
         mEmailView = (EditText) findViewById(R.id.login_email_input);
         mPasswordView = (EditText) findViewById(R.id.login_password_input);
         mLoginButton = (Button) findViewById(R.id.login_button);
@@ -56,36 +62,26 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mAuth = FirebaseAuth.getInstance();
-        Log.d(APP_TAG,"LoginActivity started");
     }
 
     // Login button onClick action
-    public void signInExistingUser(View v) {
+    public void signIn(View v) {
         Log.d(APP_TAG, "Attempting to login");
         attemptLogin();
     }
 
+    // Parses entered info and attempts login throught FirebaseAuth
     private void attemptLogin() {
 
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
 
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Please fill your corporate FileppEx e-mail", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (!isValidEmail(email)) {
-            Toast.makeText(this, "The e-mail provided appears to be invalid", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (password.equals("")) {
-            Toast.makeText(this, "Please provide your corporate FileppEx password associated with " + email, Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (!CodeHelper.emailAndPasswordValid(email, password, LoginActivity.this)) { return; }
 
         Toast.makeText(this, "Login in Progress, please wait...", Toast.LENGTH_SHORT).show();
         disableUI();
         mProgressBar.setVisibility(View.VISIBLE);
+
         // Use FirebaseAuth to sign in with email & password
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
@@ -107,15 +103,11 @@ public class LoginActivity extends AppCompatActivity {
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     Log.d(APP_TAG, "Leaving Login activity");
                     mProgressBar.setVisibility(View.INVISIBLE);
-                    finish();
+                    leaveActivity();
                     startActivity(intent);
                 }
             }
         });
-    }
-
-    private final static boolean isValidEmail(CharSequence target) {
-        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
     }
 
     private void disableUI(){
@@ -130,4 +122,8 @@ public class LoginActivity extends AppCompatActivity {
         mLoginButton.setVisibility(View.VISIBLE);
     }
 
+    private void leaveActivity() {
+        Log.d(APP_TAG, "Leaving loginActivity");
+        finish();
+    }
 }

@@ -1,5 +1,7 @@
 package Models;
 
+import android.util.Log;
+
 import com.stathis.constantinos.felippex.CodeHelper;
 
 public class FPackage {
@@ -36,19 +38,16 @@ public class FPackage {
         }
 
     }
-
     public FPackage () {}
 
     public String getAssignedDelivererFUID() {
         return assignedDelivererFUID;
     }
-
     public void setAssignedDelivererFUID(String assignedDelivererFUID) {
         this.assignedDelivererFUID = assignedDelivererFUID;
     }
 
     public String getImageRefUri() { return imageRefUri; }
-
     public void setImageRefUri(String imageRefUri) {
         this.imageRefUri = imageRefUri;
     }
@@ -56,7 +55,6 @@ public class FPackage {
     public boolean getDelivered() {
         return delivered;
     }
-
     public void setDelivered(boolean delivered) {
         this.delivered = delivered;
     }
@@ -64,7 +62,6 @@ public class FPackage {
     public String getDateReceived() {
         return dateReceived;
     }
-
     public void setDateReceived(String dateReceived) {
         this.dateReceived = dateReceived;
     }
@@ -72,7 +69,6 @@ public class FPackage {
     public String getTimeReceived() {
         return timeReceived;
     }
-
     public void setTimeReceived(String timeReceived) {
         this.timeReceived = timeReceived;
     }
@@ -80,7 +76,6 @@ public class FPackage {
     public String getSyntheticReceiptValue() {
         return syntheticReceiptValue;
     }
-
     public void setSyntheticReceiptValue(String syntheticReceiptValue) {
         if (this.syntheticReceiptValue == null) {
             this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
@@ -90,19 +85,18 @@ public class FPackage {
     public String getSyntheticDeliveryValue() {
         return syntheticDeliveryValue;
     }
-
-    public void setSyntheticDeliveryValue(String syntheticDeliveryValue) {
-        this.syntheticDeliveryValue = syntheticDeliveryValue;
-    }
-
     public void setSyntheticDeliveryValue() {
-        this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + assignedDelivererFUID;
+        if (this.pReceiverFUID != null && this.assignedDelivererFUID != null) {
+            this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + assignedDelivererFUID;
+            Log.d("FelippEx", " Synthetic Value has been set to: " + this.syntheticDeliveryValue + " successfully");
+            return;
+        }
+        Log.e("FelippEx", "Failed to set Synthetic Value");
     }
 
     public String getTransactionId() {
         return transactionId;
     }
-
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId;
     }
@@ -110,7 +104,6 @@ public class FPackage {
     public String getpReceiverFUID() {
         return pReceiverFUID;
     }
-
     public void setpReceiverFUID(String pReceiverFUID) {
         this.pReceiverFUID = pReceiverFUID;
     }
@@ -118,7 +111,6 @@ public class FPackage {
     public Transactor getSender() {
         return sender;
     }
-
     public void setSender(Transactor sender) {
         this.sender = sender;
     }
@@ -126,7 +118,6 @@ public class FPackage {
     public Transactor getReceiver() {
         return receiver;
     }
-
     public void setReceiver(Transactor receiver) {
         this.receiver = receiver;
     }

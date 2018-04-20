@@ -1,6 +1,5 @@
 package com.stathis.constantinos.felippex;
 
-import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,7 +17,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -35,7 +33,6 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Locale;
 
 import Models.FPackage;
 
@@ -88,58 +85,31 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private void init() {
         Log.d(APP_TAG, "Delivery View Activity started");
 
-        mScrollView = (ScrollView) findViewById(R.id.ac_main_scroll_view);
-        mScrollView.setVisibility(View.INVISIBLE);
-        acProgressBar = (ProgressBar) findViewById(R.id.ac_progress_bar);
-
-        titleIdLabelTextView = (TextView) findViewById(R.id.today_received_title_textView);
-
-        receiverFullNameTextView = (TextView) findViewById(R.id.receiver_full_name_textview);
-        receiverPhoneNumberTextView = (TextView) findViewById(R.id.receiver_phone_number_textview);
-        receiverAddressTextView = (TextView) findViewById(R.id.receiver_address_textview);
-
-        senderFullNameTextView = (TextView) findViewById(R.id.sender_full_name_textview);
-        senderPhoneNumberTextView = (TextView) findViewById(R.id.sender_phone_number_textview);
-        senderAddressTextView = (TextView) findViewById(R.id.sender_address_textview);
-
-                packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
-
-        markAsDeliveredButton = (Button) findViewById(R.id.mark_as_delivered_button);
-        editDeliveryButton = (Button) findViewById(R.id.edit_delivery_button);
-        deleteDeliveryButton = (Button) findViewById(R.id.delete_delivery_button);
-
+        // Get intent information
         intentReceived = getIntent();
         transactionID = (String) intentReceived.getStringExtra("transactionID");
         viewTypeRequested = (String) intentReceived.getStringExtra("requestedView");
 
+        assignViewVars();
+
+        // Initialize Firebase DB and storage
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
+        mStorage = FirebaseStorage.getInstance();
+
         if (viewTypeRequested.equals("viewPackage")) {
-            markAsDeliveredButton.setEnabled(false);
-            markAsDeliveredButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
-            editDeliveryButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(DeliveryViewActivity.this, PackageEditActivity.class);
-                    intent.putExtra("editMode", true);
-                    intent.putExtra("transactionId", transactionID);
-                    startActivity(intent);
-                }
-            });
+            disableMarkAsDeliveredButton();
+            initEditButton();
             initDeleteButton();
         }
 
         if (viewTypeRequested.equals("viewDelivery")) {
-            editDeliveryButton.setEnabled(false);
-            editDeliveryButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
-            deleteDeliveryButton.setEnabled(false);
-            deleteDeliveryButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
+            disableEditButton();
+            disableDeleteButton();
             // TODO: markAsDeliveredButton
         }
-
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("deliveries");
-        mStorage = FirebaseStorage.getInstance();
-
     }
 
+    // 1. ViewTypeRequested = ViewPackage related function ===================== //
     private void initDeleteButton() {
         deleteDeliveryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,6 +135,63 @@ public class DeliveryViewActivity extends AppCompatActivity {
         });
     }
 
+    private void initEditButton() {
+        editDeliveryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(DeliveryViewActivity.this, PackageEditActivity.class);
+                intent.putExtra("editMode", true);
+                intent.putExtra("transactionId", transactionID);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void disableMarkAsDeliveredButton() {
+        markAsDeliveredButton.setEnabled(false);
+        markAsDeliveredButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
+    }
+
+    // 2. ViewTypeRequested = ViewDelivery related function ==================== //
+
+    private void disableDeleteButton() {
+        deleteDeliveryButton.setEnabled(false);
+        deleteDeliveryButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
+    }
+
+    private void disableEditButton() {
+        editDeliveryButton.setEnabled(false);
+        editDeliveryButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
+    }
+
+    // TODO: initMarkAsDeliveredButton()
+
+    // 3. Shared functions bewtween modes ====================================== //
+
+    // Links view with Java code
+    private void assignViewVars() {
+        mScrollView = (ScrollView) findViewById(R.id.ac_main_scroll_view);
+        mScrollView.setVisibility(View.INVISIBLE);
+        acProgressBar = (ProgressBar) findViewById(R.id.ac_progress_bar);
+
+        titleIdLabelTextView = (TextView) findViewById(R.id.today_received_title_textView);
+
+        receiverFullNameTextView = (TextView) findViewById(R.id.receiver_full_name_textview);
+        receiverPhoneNumberTextView = (TextView) findViewById(R.id.receiver_phone_number_textview);
+        receiverAddressTextView = (TextView) findViewById(R.id.receiver_address_textview);
+
+        senderFullNameTextView = (TextView) findViewById(R.id.sender_full_name_textview);
+        senderPhoneNumberTextView = (TextView) findViewById(R.id.sender_phone_number_textview);
+        senderAddressTextView = (TextView) findViewById(R.id.sender_address_textview);
+
+        packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
+
+        markAsDeliveredButton = (Button) findViewById(R.id.mark_as_delivered_button);
+        editDeliveryButton = (Button) findViewById(R.id.edit_delivery_button);
+        deleteDeliveryButton = (Button) findViewById(R.id.delete_delivery_button);
+    }
+
+    // Query DB for given transactionId through intent
     private void queryDeliveryAndApplyToView() {
         Query deliveryQuery = mDatabase.orderByKey().equalTo(transactionID);
         deliveryQuery.addValueEventListener(new ValueEventListener() {
@@ -176,44 +203,8 @@ public class DeliveryViewActivity extends AppCompatActivity {
 
                     final FPackage packR = ds.getValue(FPackage.class);
 
-                    senderFullNameTextView.setText(packR.getSender().getFullName());
-                    senderPhoneNumberTextView.setText(packR.getSender().getPhoneNumber());
-                    senderAddressTextView.setText(packR.getSender().getAddress());
-
-                    receiverFullNameTextView.setText(packR.getReceiver().getFullName());
-                    receiverPhoneNumberTextView.setText(packR.getReceiver().getPhoneNumber());
-                    receiverAddressTextView.setText(packR.getReceiver().getAddress());
-
-//                    final String senderAddress =ds.child("sender/address").getValue().toString();
-//                    senderFullNameTextView.setText(ds.child("sender/fullName").getValue().toString());
-//                    senderPhoneNumberTextView.setText(ds.child("sender/phoneNumber").getValue().toString());
-//                    senderAddressTextView.setText(senderAddress);
-//
-//                    receiverFullNameTextView.setText(ds.child("receiver/fullName").getValue().toString());
-//                    receiverPhoneNumberTextView.setText(ds.child("receiver/phoneNumber").getValue().toString());
-//                    final String receiverAddress = ds.child("receiver/address").getValue().toString();
-//                    receiverAddressTextView.setText(receiverAddress);
-
-                    receiverAddressTextView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            String uri = "http://maps.google.co.in/maps?q=\"" + packR.getReceiver().getAddress() + "\"";
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                            startActivity(intent);
-                        }
-                    });
-
-                    senderAddressTextView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            String uri = "http://maps.google.co.in/maps?q=\"" + packR.getSender().getAddress() + "\"";
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                            startActivity(intent);
-                        }
-                    });
-
+                    fillViewElements(packR);
                     photoUrl = ds.child("imageRefUri").getValue().toString();
-                    Log.e(APP_TAG, "PhotoUrl :" + photoUrl);
                     getPackagePhotoAndSetToImageView();
                 }
             }
@@ -225,15 +216,43 @@ public class DeliveryViewActivity extends AppCompatActivity {
         });
     }
 
+    // Fill elements in view
+    private void fillViewElements(final FPackage packR) {
+        senderFullNameTextView.setText(packR.getSender().getFullName());
+        senderPhoneNumberTextView.setText(packR.getSender().getPhoneNumber());
+        senderAddressTextView.setText(packR.getSender().getAddress());
+
+        receiverFullNameTextView.setText(packR.getReceiver().getFullName());
+        receiverPhoneNumberTextView.setText(packR.getReceiver().getPhoneNumber());
+        receiverAddressTextView.setText(packR.getReceiver().getAddress());
+
+        receiverAddressTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String uri = "http://maps.google.co.in/maps?q=\"" + packR.getReceiver().getAddress() + "\"";
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                startActivity(intent);
+            }
+        });
+
+        senderAddressTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String uri = "http://maps.google.co.in/maps?q=\"" + packR.getSender().getAddress() + "\"";
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                startActivity(intent);
+            }
+        });
+    }
+
+    // Query image from Firebase storage and apply to imageView
     private void getPackagePhotoAndSetToImageView() {
-        Log.d(APP_TAG, "getPackagePhoto() fired!");
         StorageReference ref = mStorage.getReferenceFromUrl(photoUrl);
         try {
             final File localFile = File.createTempFile("Images", "bmp");
             ref.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    Log.d(APP_TAG, "Adding photo at imageView");
                     packagePhotoBitmap = BitmapFactory.decodeFile(localFile.getAbsolutePath());
                     packagePictureImageView.setImageBitmap(packagePhotoBitmap);
                     enableUI();
@@ -274,5 +293,4 @@ public class DeliveryViewActivity extends AppCompatActivity {
             }
         });
     }
-
 }

@@ -2,12 +2,16 @@ package com.stathis.constantinos.felippex;
 
 import android.content.Context;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
+import android.util.Patterns;
+import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class CodeHelper {
+    // Shows Error dialog on current activity
     protected static void showErrorDialog(Context context, String msg) {
         new AlertDialog.Builder(context)
                 .setTitle("Oops")
@@ -17,22 +21,50 @@ public class CodeHelper {
                 .show();
     }
 
-        public static String getDateNowToString(){
-            DateFormat dateFormatDate = new SimpleDateFormat("yyyy/MM/dd");
-            Date date = new Date();
-            return dateFormatDate.format(date);
+    // Returns date as String yyyy/MM/dd
+    public static String getDateNowToString() {
+        DateFormat dateFormatDate = new SimpleDateFormat("yyyy/MM/dd");
+        Date date = new Date();
+        return dateFormatDate.format(date);
+    }
+
+    // Returns time as String HH:mm:ss
+    public static String getTimeNowToString() {
+        DateFormat dateFormatDate = new SimpleDateFormat("HH:mm:ss");
+        Date date = new Date();
+        return dateFormatDate.format(date);
+    }
+
+    // Returns dateTime as String yyyy/MM/dd HH:mm:ss
+    public static String getDateTimeNowToString() {
+        DateFormat dateFormatDate = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        return dateFormatDate.format(date);
+    }
+
+    // Return boolean after checking the validity of an e-mail
+    public final static boolean isValidEmail(CharSequence target) {
+        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
+    }
+
+    // Checks if values are empty and produces errors for LoginActivity
+    public final static boolean emailAndPasswordValid(String email, String password, Context context) {
+        Boolean valid = true;
+
+        if (email.isEmpty()) {
+            Toast.makeText(context, "Please fill your corporate FileppEx e-mail", Toast.LENGTH_SHORT).show();
+            valid = false;
+        }
+        if (!CodeHelper.isValidEmail(email)) {
+            Toast.makeText(context, "The e-mail provided appears to be invalid", Toast.LENGTH_SHORT).show();
+            valid = false;
+        }
+        if (password.equals("")) {
+            Toast.makeText(context, "Please provide your corporate FileppEx password associated with " + email, Toast.LENGTH_SHORT).show();
+            valid = false;
         }
 
-        public static String getTimeNowToString(){
-            DateFormat dateFormatDate = new SimpleDateFormat("HH:mm:ss");
-            Date date = new Date();
-            return dateFormatDate.format(date);
-        }
-
-        public static String getDateTimeNowToString(){
-            DateFormat dateFormatDate = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            Date date = new Date();
-            return dateFormatDate.format(date);
-        }
+        return valid;
+    }
 
 }

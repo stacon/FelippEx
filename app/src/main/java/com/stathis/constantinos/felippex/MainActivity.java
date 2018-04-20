@@ -19,30 +19,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        packageRetrievalButton = (Button) findViewById(R.id.receivePackageButton);
-        packageDeliveranceButton = (Button) findViewById(R.id.deliverPackageButton);
-        packagesListButton = (Button) findViewById(R.id.viewPackagesButton);
+        assignViewVars();
+        initPackageRetrievalButton();
+        initPackageDeliveranceButton();
+        initPackagesListButton();
+    }
 
-
-        packageRetrievalButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(APP_TAG, "Package retrieval option clicked");
-                Intent intent = new Intent(MainActivity.this, PackageEditActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        packageDeliveranceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, PackageListActivity.class);
-                intent.putExtra("viewMode", "deliveries");
-                Log.d(APP_TAG, "Requested package list with MODE: deliveries");
-                startActivity(intent);
-            }
-        });
-
+    private void initPackagesListButton() {
         packagesListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -54,6 +37,34 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void initPackageDeliveranceButton() {
+        packageDeliveranceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, PackageListActivity.class);
+                intent.putExtra("viewMode", "deliveries");
+                Log.d(APP_TAG, "Requested package list with MODE: deliveries");
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void initPackageRetrievalButton() {
+        packageRetrievalButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(APP_TAG, "Package retrieval option clicked");
+                Intent intent = new Intent(MainActivity.this, PackageEditActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void assignViewVars() {
+        packageRetrievalButton = (Button) findViewById(R.id.receivePackageButton);
+        packageDeliveranceButton = (Button) findViewById(R.id.deliverPackageButton);
+        packagesListButton = (Button) findViewById(R.id.viewPackagesButton);
+    }
 
 
 }
