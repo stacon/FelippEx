@@ -85,13 +85,12 @@ public class FPackage {
     public String getSyntheticDeliveryValue() {
         return syntheticDeliveryValue;
     }
-    public void setSyntheticDeliveryValue() {
-        if (this.pReceiverFUID != null && this.assignedDelivererFUID != null) {
-            this.syntheticDeliveryValue = pReceiverFUID + CodeHelper.getDateNowToString() + this.assignedDelivererFUID + "-true";
-            Log.d("FelippEx", " Synthetic Value has been set to: " + this.syntheticDeliveryValue + " successfully");
-            return;
-        }
-        Log.e("FelippEx", "Failed to set Synthetic Value");
+    public void setSyntheticDeliveryValue(String syntheticDeliveryValue) {
+        this.syntheticDeliveryValue = syntheticDeliveryValue;
+    }
+
+    public void setAsDeliveredSyntheticKey() {
+        this.syntheticDeliveryValue = assignedDelivererFUID + "-true";
     }
 
     public String getTransactionId() {

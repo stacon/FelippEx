@@ -41,6 +41,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private final String APP_TAG = "FelippEx";
     private String transactionID;
     private String viewTypeRequested;
+    private FPackage deliveryPackage;
 
     private String photoUrl;
     private Bitmap packagePhotoBitmap;
@@ -104,7 +105,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
         if (viewTypeRequested.equals("viewDelivery")) {
             disableEditButton();
             disableDeleteButton();
-            // TODO: markAsDeliveredButton
+            initMarkAsDeliveredButton();
         }
     }
 
@@ -180,13 +181,38 @@ public class DeliveryViewActivity extends AppCompatActivity {
         editDeliveryButton.setBackgroundColor(Color.parseColor("#dbdbdb"));
     }
 
-    // TODO: initMarkAsDeliveredButton()
+    private void initMarkAsDeliveredButton(){
+        markAsDeliveredButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                attemptToMarkDeliveryAsDelivered();
+            }
+        });
+    }
 
-    // TODO: attemptToMarkDeliveryAsDelivered()
-    // needs to set delivered value to true
-    // needs to set
+    private void attemptToMarkDeliveryAsDelivered() {
+        acProgressBar.setVisibility(View.VISIBLE);
+        disableUI();
+        deliveryPackage.setDelivered(true);
+        deliveryPackage.setAsDeliveredSyntheticKey();
 
-    // 3. Shared functions bewtween modes ====================================== //
+        mDatabase.child(transactionID).setValue(deliveryPackage).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Toast.makeText(DeliveryViewActivity.this, "Package marked as DELIVERED", Toast.LENGTH_SHORT).show();
+                leaveActivity();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(DeliveryViewActivity.this, "FAILURE: Package failed to be marked as delivered", Toast.LENGTH_SHORT).show();
+                acProgressBar.setVisibility(View.INVISIBLE);
+                enableUI();
+            }
+        });
+    }
+
+    // 3. Shared functions between modes ====================================== //
 
     // Links view with Java code
     private void assignViewVars() {
@@ -221,9 +247,9 @@ public class DeliveryViewActivity extends AppCompatActivity {
                 for(DataSnapshot ds: dataSnapshot.getChildren()) {
                     titleIdLabelTextView.setText(ds.getKey());
 
-                    final FPackage packR = ds.getValue(FPackage.class);
+                    deliveryPackage = ds.getValue(FPackage.class);
 
-                    fillViewElements(packR);
+                    fillViewElements(deliveryPackage);
                     photoUrl = ds.child("imageRefUri").getValue().toString();
                     getPackagePhotoAndSetToImageView();
                 }
@@ -298,6 +324,11 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private void enableUI() {
         acProgressBar.setVisibility(View.INVISIBLE);
         mScrollView.setVisibility(View.VISIBLE);
+    }
+
+    private void leaveActivity() {
+        Log.d(APP_TAG, "Leaving Delivery view activity");
+        finish();
     }
 
 }

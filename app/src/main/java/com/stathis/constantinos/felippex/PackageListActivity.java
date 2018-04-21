@@ -33,7 +33,6 @@ public class PackageListActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabaseReference;
     private String transporterUID;
-    private String exampleCall;
     private String querySynthKey;
     private String viewMode;
 
@@ -121,11 +120,12 @@ public class PackageListActivity extends AppCompatActivity {
         });
     }
 
-    private void populateDeliveriesList() {
-    // TODO: order by should be set to syntheticDeliveryKey with false as a value in the end
+    private void populateDeliveriesList()  {
+
+        String syntheticDeliveryKeyQuery = transporterUID + "-false";
         Query query = mDatabaseReference.child("deliveries").
-                orderByChild("assignedDelivererFUID").
-                equalTo(transporterUID);
+                orderByChild("syntheticDeliveryValue").
+                equalTo(syntheticDeliveryKeyQuery);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
