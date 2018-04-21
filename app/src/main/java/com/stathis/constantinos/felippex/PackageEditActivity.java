@@ -90,6 +90,7 @@ public class PackageEditActivity extends AppCompatActivity {
 
     // EditMode switch in Boolean
     private Boolean editMode = false;
+    private Boolean newPhotoTaken = false;
     private String transcationIdForEdit;
     private FPackage packageForEdit;
 
@@ -332,14 +333,22 @@ public class PackageEditActivity extends AppCompatActivity {
     // Attempt to store changes to firebase sequence
     private void attemptToStoreChanges() {
         Toast.makeText(this, R.string.saving_delivery_changes_toast, Toast.LENGTH_LONG).show();
+        packageForEdit.setSender(sender);
+        packageForEdit.setReceiver(receiver);
+        packageForEdit.setImageRefUri(imageUrl.toString());
+
         packageImageView.setDrawingCacheEnabled(true);
         packageImageView.buildDrawingCache();
         Bitmap bitmap = packageImageView.getDrawingCache();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
         byte[] data = baos.toByteArray();
-        attemptToUpdateImage(data);
-
+        if (newPhotoTaken) {
+            attemptToUpdateImage(data);
+        } else {
+            attemptToUpdateDelivery();
+        }
+        if (error) Log.e(APP_TAG, errorStatus);error = false;
     }
 
     // Attempts to store updated image (or the same) at Firebase storage service.
@@ -351,19 +360,12 @@ public class PackageEditActivity extends AppCompatActivity {
             public void onFailure(@NonNull Exception exception) {
                 error = true;
                 errorStatus = "Image Upload Failed. Please try again later";
-                if (error) {
-                    Log.e(APP_TAG, errorStatus);error = false; return;}
                 mProgressBar.setVisibility(View.INVISIBLE);
                 enableUI();
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-
-                packageForEdit.setSender(sender);
-                packageForEdit.setReceiver(receiver);
-                packageForEdit.setImageRefUri(imageUrl.toString());
-
                 Log.d(APP_TAG, "NEW image upload and Uri retrieval succeeded");
                 Log.d(APP_TAG, "Attempting to store changes to database");
                 attemptToUpdateDelivery();
@@ -436,6 +438,9 @@ public class PackageEditActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
             setPic();
+            if(editMode) {
+                newPhotoTaken = true;
+            }
         }
     }
 
