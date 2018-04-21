@@ -1,13 +1,11 @@
 package com.stathis.constantinos.felippex;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
-import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -43,11 +41,11 @@ public class LoginActivity extends AppCompatActivity {
 
     // Init view elements and hook with vars
     private void init() {
-        mEmailView = (EditText) findViewById(R.id.login_email_input);
-        mPasswordView = (EditText) findViewById(R.id.login_password_input);
-        mLoginButton = (Button) findViewById(R.id.login_button);
+        mEmailView = findViewById(R.id.login_email_input);
+        mPasswordView = findViewById(R.id.login_password_input);
+        mLoginButton = findViewById(R.id.login_button);
 
-        mProgressBar = (ProgressBar) findViewById(R.id.loginProgressBar);
+        mProgressBar = findViewById(R.id.loginProgressBar);
         mProgressBar.setVisibility(View.INVISIBLE);
 
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -78,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
 
         if (!CodeHelper.emailAndPasswordValid(email, password, LoginActivity.this)) { return; }
 
-        Toast.makeText(this, "Login in Progress, please wait...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.login_in_progress_toast, Toast.LENGTH_SHORT).show();
         disableUI();
         mProgressBar.setVisibility(View.VISIBLE);
 
@@ -94,7 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                     try {
                         CodeHelper.showErrorDialog(LoginActivity.this, task.getException().getMessage());
                     } catch (NullPointerException e) {
-                        CodeHelper.showErrorDialog(LoginActivity.this,"There was a problem signing in...");
+                        CodeHelper.showErrorDialog(LoginActivity.this, getResources().getString(R.string.problem_sign_in_dialog));
                     }
                     mProgressBar.setVisibility(View.INVISIBLE);
                     enableUI();

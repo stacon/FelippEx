@@ -61,9 +61,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void assignViewVars() {
-        packageRetrievalButton = (Button) findViewById(R.id.receivePackageButton);
-        packageDeliveranceButton = (Button) findViewById(R.id.deliverPackageButton);
-        packagesListButton = (Button) findViewById(R.id.viewPackagesButton);
+        packageRetrievalButton = findViewById(R.id.receivePackageButton);
+        packageDeliveranceButton = findViewById(R.id.deliverPackageButton);
+        packagesListButton = findViewById(R.id.viewPackagesButton);
     }
 
 

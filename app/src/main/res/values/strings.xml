@@ -57,4 +57,26 @@
     <string name="maps_api_key">AIzaSyDTZkZBLv3R_B3pq6fvXJEvwFbYJJtbKd4</string>
     <string name="package_photo_label">Package Photo</string>
     <!--END OF Static Keys-->
+
+    <!--Toasts-->
+    <string name="saving_delivery_toast">Please wait while saving the delivery information &#8230;</string>
+    <string name="success_delivery_save_toast">The delivery was recorded successfully</string>
+    <string name="failed_delivery_save_toast">FAILED to store delivery!</string>
+    <string name="saving_delivery_changes_toast">Please wait while saving the changes &#8230;</string>
+    <string name="changes_saved_toast">Changes saved!</string>
+    <string name="failed_saving_changes_toast">FAILURE: Changes weren\'t saved</string>
+    <string name="fill_the_field_requests_toast">Please fill all the fields regarding sender and receiver valid information</string>
+    <string name="request_package_photo_toast">Please take a photo of the package</string>
+    <string name="request_email_fill_toast">Please fill your corporate FileppEx e-mail</string>
+    <string name="email_appears_invalid_toast">The e-mail provided appears to be invalid</string>
+    <string name="request_password_fill_toast">Please provide your corporate FileppEx password associated with </string>
+    <string name="deletion_failed_toast">FAILED to delete delivery</string>
+    <string name="package_marked_delivered_toast">Package marked as DELIVERED</string>
+    <string name="package_not_marked_delivered_toast">FAILURE: Package failed to be marked as delivered</string>
+    <string name="login_in_progress_toast">Login in Progress, please wait &#8230;</string>
+    <string name="problem_sign_in_dialog">There was a problem signing in &#8230;</string>
+    <string name="no_available_deliveries_toast">There are no deliveries for today</string>
+    <string name="something_went_wrong_toast">Something went wrong</string>
+    <string name="no_receipts_collected_today">No packages have been collected today</string>
+    <!--END OF Toasts-->
 </resources>

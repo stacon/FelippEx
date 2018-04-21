@@ -31,11 +31,11 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
 
         public MyViewHolder(View view) {
             super(view);
-            transactionId = (TextView) view.findViewById(R.id.id_output_textview);
-            senderName = (TextView) view.findViewById(R.id.sender_name_textview);
-            receiverName = (TextView) view.findViewById(R.id.receiver_name_textview);
-            viewButton = (Button) view.findViewById(R.id.view_button);
-            editButton = (Button) view.findViewById(R.id.edit_button);
+            transactionId = view.findViewById(R.id.id_output_textview);
+            senderName = view.findViewById(R.id.sender_name_textview);
+            receiverName = view.findViewById(R.id.receiver_name_textview);
+            viewButton = view.findViewById(R.id.view_button);
+            editButton = view.findViewById(R.id.edit_button);
             if (mode.equals("deliveries")){
                 editButton.setVisibility(View.INVISIBLE);
             }

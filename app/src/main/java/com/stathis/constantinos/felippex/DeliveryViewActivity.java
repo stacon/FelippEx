@@ -87,8 +87,8 @@ public class DeliveryViewActivity extends AppCompatActivity {
 
         // Get intent information
         intentReceived = getIntent();
-        transactionID = (String) intentReceived.getStringExtra("transactionID");
-        viewTypeRequested = (String) intentReceived.getStringExtra("requestedView");
+        transactionID = intentReceived.getStringExtra("transactionID");
+        viewTypeRequested = intentReceived.getStringExtra("requestedView");
 
         assignViewVars();
 
@@ -114,7 +114,6 @@ public class DeliveryViewActivity extends AppCompatActivity {
         deleteDeliveryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(DeliveryViewActivity.this ,"Deleting delivery record...", Toast.LENGTH_SHORT).show();
                 disableUI();
                 attemptToDeleteRecordFromFirebase();
             }
@@ -142,14 +141,13 @@ public class DeliveryViewActivity extends AppCompatActivity {
         mDatabase.child(transactionID).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                Toast.makeText(DeliveryViewActivity.this, "Deletion was successful", Toast.LENGTH_LONG).show();
                 attemptToDeletePhotoFromFirebase();
                 finish();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(DeliveryViewActivity.this, "Deletion FAILED", Toast.LENGTH_LONG).show();
+                Toast.makeText(DeliveryViewActivity.this, R.string.deletion_failed_toast, Toast.LENGTH_LONG).show();
                 enableUI();
             }
         });
@@ -199,13 +197,13 @@ public class DeliveryViewActivity extends AppCompatActivity {
         mDatabase.child(transactionID).setValue(deliveryPackage).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                Toast.makeText(DeliveryViewActivity.this, "Package marked as DELIVERED", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DeliveryViewActivity.this, R.string.package_marked_delivered_toast, Toast.LENGTH_SHORT).show();
                 leaveActivity();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(DeliveryViewActivity.this, "FAILURE: Package failed to be marked as delivered", Toast.LENGTH_SHORT).show();
+                Toast.makeText(DeliveryViewActivity.this, R.string.package_not_marked_delivered_toast, Toast.LENGTH_SHORT).show();
                 acProgressBar.setVisibility(View.INVISIBLE);
                 enableUI();
             }
@@ -216,25 +214,25 @@ public class DeliveryViewActivity extends AppCompatActivity {
 
     // Links view with Java code
     private void assignViewVars() {
-        mScrollView = (ScrollView) findViewById(R.id.ac_main_scroll_view);
+        mScrollView = findViewById(R.id.ac_main_scroll_view);
         mScrollView.setVisibility(View.INVISIBLE);
-        acProgressBar = (ProgressBar) findViewById(R.id.ac_progress_bar);
+        acProgressBar = findViewById(R.id.ac_progress_bar);
 
-        titleIdLabelTextView = (TextView) findViewById(R.id.today_received_title_textView);
+        titleIdLabelTextView = findViewById(R.id.today_received_title_textView);
 
-        receiverFullNameTextView = (TextView) findViewById(R.id.receiver_full_name_textview);
-        receiverPhoneNumberTextView = (TextView) findViewById(R.id.receiver_phone_number_textview);
-        receiverAddressTextView = (TextView) findViewById(R.id.receiver_address_textview);
+        receiverFullNameTextView = findViewById(R.id.receiver_full_name_textview);
+        receiverPhoneNumberTextView = findViewById(R.id.receiver_phone_number_textview);
+        receiverAddressTextView = findViewById(R.id.receiver_address_textview);
 
-        senderFullNameTextView = (TextView) findViewById(R.id.sender_full_name_textview);
-        senderPhoneNumberTextView = (TextView) findViewById(R.id.sender_phone_number_textview);
-        senderAddressTextView = (TextView) findViewById(R.id.sender_address_textview);
+        senderFullNameTextView = findViewById(R.id.sender_full_name_textview);
+        senderPhoneNumberTextView = findViewById(R.id.sender_phone_number_textview);
+        senderAddressTextView = findViewById(R.id.sender_address_textview);
 
-        packagePictureImageView = (ImageView) findViewById(R.id.package_view_imageview);
+        packagePictureImageView = findViewById(R.id.package_view_imageview);
 
-        markAsDeliveredButton = (Button) findViewById(R.id.mark_as_delivered_button);
-        editDeliveryButton = (Button) findViewById(R.id.edit_delivery_button);
-        deleteDeliveryButton = (Button) findViewById(R.id.delete_delivery_button);
+        markAsDeliveredButton = findViewById(R.id.mark_as_delivered_button);
+        editDeliveryButton = findViewById(R.id.edit_delivery_button);
+        deleteDeliveryButton = findViewById(R.id.delete_delivery_button);
     }
 
     // Query DB for given transactionId through intent

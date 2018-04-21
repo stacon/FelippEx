@@ -52,15 +52,15 @@ public class CodeHelper {
         Boolean valid = true;
 
         if (email.isEmpty()) {
-            Toast.makeText(context, "Please fill your corporate FileppEx e-mail", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.request_email_fill_toast, Toast.LENGTH_SHORT).show();
             valid = false;
         }
         if (!CodeHelper.isValidEmail(email)) {
-            Toast.makeText(context, "The e-mail provided appears to be invalid", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.email_appears_invalid_toast, Toast.LENGTH_SHORT).show();
             valid = false;
         }
         if (password.equals("")) {
-            Toast.makeText(context, "Please provide your corporate FileppEx password associated with " + email, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.request_password_fill_toast + email, Toast.LENGTH_SHORT).show();
             valid = false;
         }
 

@@ -60,7 +60,7 @@ public class PackageListActivity extends AppCompatActivity {
             populateDeliveriesList();
         } else {
             mProgressBar.setVisibility(View.INVISIBLE);
-            Toast.makeText(PackageListActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+            Toast.makeText(PackageListActivity.this, R.string.something_went_wrong_toast, Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -70,11 +70,11 @@ public class PackageListActivity extends AppCompatActivity {
         Log.e(APP_TAG, "ViewModeRequested: " + getIntent().getStringExtra("viewMode"));
         viewMode = getIntent().getStringExtra("viewMode");
 
-        mNoPackagesFoundTextView = (TextView) findViewById(R.id.no_packages_found_textview);
+        mNoPackagesFoundTextView = findViewById(R.id.no_packages_found_textview);
         mNoPackagesFoundTextView.setVisibility(View.INVISIBLE);
-        mProgressBar = (ProgressBar) findViewById(R.id.mtProgressBar);
+        mProgressBar = findViewById(R.id.mtProgressBar);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.today_packages_recycler_view);
+        mRecyclerView = findViewById(R.id.today_packages_recycler_view);
         mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList, PackageListActivity.this, viewMode);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -109,7 +109,7 @@ public class PackageListActivity extends AppCompatActivity {
                     Log.d(APP_TAG, "No data found with the synthetic key of " + querySynthKey);
                     mProgressBar.setVisibility(View.INVISIBLE);
                     mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
-                    Toast.makeText(PackageListActivity.this, "There are no receipts for today", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PackageListActivity.this, R.string.no_receipts_collected_today, Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -143,7 +143,7 @@ public class PackageListActivity extends AppCompatActivity {
                     Log.d(APP_TAG, "No deliveries found for " + transporterUID);
                     mProgressBar.setVisibility(View.INVISIBLE);
                     mNoPackagesFoundTextView.setVisibility(View.VISIBLE);
-                    Toast.makeText(PackageListActivity.this, "There are no deliveries for today", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(PackageListActivity.this, R.string.no_available_deliveries_toast, Toast.LENGTH_SHORT).show();
                 }
             }
 

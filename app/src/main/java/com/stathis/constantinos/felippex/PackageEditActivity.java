@@ -108,21 +108,21 @@ public class PackageEditActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mTitleTextView = (TextView) findViewById(R.id.retrieval_form_textView);
-        mScrollView = (ScrollView) findViewById(R.id.main_scrollView);
+        mTitleTextView = findViewById(R.id.retrieval_form_textView);
+        mScrollView = findViewById(R.id.main_scrollView);
 
         // Senders information var assignment
-        mSendersName = (EditText) findViewById(R.id.sender_fullName_input);
-        mSendersPhone = (EditText) findViewById(R.id.sender_phone_input);
-        mSendersAddress = (EditText) findViewById(R.id.sender_address_input);
+        mSendersName = findViewById(R.id.sender_fullName_input);
+        mSendersPhone = findViewById(R.id.sender_phone_input);
+        mSendersAddress = findViewById(R.id.sender_address_input);
 
         // Receivers information var assignment
-        mReceiversName = (EditText) findViewById(R.id.receiver_fullName_input);
-        mReceiversPhone = (EditText) findViewById(R.id.receiver_phone_input);
-        mReceiversAddress = (EditText) findViewById(R.id.receiver_address_input);
+        mReceiversName = findViewById(R.id.receiver_fullName_input);
+        mReceiversPhone = findViewById(R.id.receiver_phone_input);
+        mReceiversAddress = findViewById(R.id.receiver_address_input);
 
         // Image information var assignment
-        packageImageView = (ImageView) findViewById(R.id.package_image_placeholder);
+        packageImageView = findViewById(R.id.package_image_placeholder);
 
         // Package received button
         mPackageReceivedButton = findViewById(R.id.package_received_button);
@@ -131,7 +131,7 @@ public class PackageEditActivity extends AppCompatActivity {
         transporter = FirebaseAuth.getInstance().getCurrentUser();
 
         // Progress bar hook and dimming
-        mProgressBar = (ProgressBar) findViewById(R.id.deliveryProgressBar);
+        mProgressBar = findViewById(R.id.deliveryProgressBar);
         mProgressBar.setVisibility(View.INVISIBLE);
 
         if (getIntent().hasExtra("editMode")) {
@@ -180,7 +180,7 @@ public class PackageEditActivity extends AppCompatActivity {
 
     // Does the whole procedure and communication with Firebase
     private void attemptToStoreDelivery() {
-        Toast.makeText(this, "Please wait while saving the delivery information...", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.saving_delivery_toast, Toast.LENGTH_LONG).show();
         createHashedImageName();
         StorageReference spaceRef = mStorageRef.child("packageImages/" + imageNameHashed);
         packageImageView.setDrawingCacheEnabled(true);
@@ -210,13 +210,12 @@ public class PackageEditActivity extends AppCompatActivity {
                 mDatabase.push().setValue(deliveryPackage).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(PackageEditActivity.this, "The delivery was recorded successfully", Toast.LENGTH_SHORT).show();
-                        leaveActivity();
+                    leaveActivity();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(PackageEditActivity.this, "FAILED to store delivery!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(PackageEditActivity.this, R.string.failed_delivery_save_toast, Toast.LENGTH_SHORT).show();
                         mProgressBar.setVisibility(View.INVISIBLE);
                         enableUI();
                     }
@@ -332,7 +331,7 @@ public class PackageEditActivity extends AppCompatActivity {
 
     // Attempt to store changes to firebase sequence
     private void attemptToStoreChanges() {
-        Toast.makeText(this, "Please wait while saving the changes...", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.saving_delivery_changes_toast, Toast.LENGTH_LONG).show();
         packageImageView.setDrawingCacheEnabled(true);
         packageImageView.buildDrawingCache();
         Bitmap bitmap = packageImageView.getDrawingCache();
@@ -377,14 +376,13 @@ public class PackageEditActivity extends AppCompatActivity {
         mDatabase.child(transcationIdForEdit).setValue(packageForEdit).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                Toast.makeText(PackageEditActivity.this, "Changes where made successfully", Toast.LENGTH_SHORT).show();
                 disableUI();
                 leaveActivity();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(PackageEditActivity.this, "FAILURE: Changes weren't saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(PackageEditActivity.this, R.string.failed_saving_changes_toast, Toast.LENGTH_SHORT).show();
                 mProgressBar.setVisibility(View.INVISIBLE);
                 enableUI();
             }
@@ -410,7 +408,7 @@ public class PackageEditActivity extends AppCompatActivity {
                 receiverNameInput.isEmpty() ||
                 receiverPhoneInput.isEmpty() ||
                 receiverAddressInput.isEmpty()) {
-            Toast.makeText(this, "Please fill all the fields regarding sender and receiver valid information", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.fill_the_field_requests_toast, Toast.LENGTH_SHORT).show();
             error = true;
             errorStatus = "Transactor Inputs appear to be invalid";
             return;
@@ -500,7 +498,7 @@ public class PackageEditActivity extends AppCompatActivity {
         if (packageImageView.getDrawable() == null) {
             error = true;
             errorStatus = "Please set an image package";
-            Toast.makeText(this, "Please take a photo of the package", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.request_package_photo_toast, Toast.LENGTH_SHORT).show();
         }
     }
 
