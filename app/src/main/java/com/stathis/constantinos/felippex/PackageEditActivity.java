@@ -109,31 +109,7 @@ public class PackageEditActivity extends AppCompatActivity {
     }
 
     private void init() {
-        mTitleTextView = findViewById(R.id.retrieval_form_textView);
-        mScrollView = findViewById(R.id.main_scrollView);
-
-        // Senders information var assignment
-        mSendersName = findViewById(R.id.sender_fullName_input);
-        mSendersPhone = findViewById(R.id.sender_phone_input);
-        mSendersAddress = findViewById(R.id.sender_address_input);
-
-        // Receivers information var assignment
-        mReceiversName = findViewById(R.id.receiver_fullName_input);
-        mReceiversPhone = findViewById(R.id.receiver_phone_input);
-        mReceiversAddress = findViewById(R.id.receiver_address_input);
-
-        // Image information var assignment
-        packageImageView = findViewById(R.id.package_image_placeholder);
-
-        // Package received button
-        mPackageReceivedButton = findViewById(R.id.package_received_button);
-
-        // Transporter user assignment
-        transporter = FirebaseAuth.getInstance().getCurrentUser();
-
-        // Progress bar hook and dimming
-        mProgressBar = findViewById(R.id.deliveryProgressBar);
-        mProgressBar.setVisibility(View.INVISIBLE);
+        assignViewVars();
 
         if (getIntent().hasExtra("editMode")) {
             editMode = getIntent().getExtras().getBoolean("editMode");
@@ -160,6 +136,34 @@ public class PackageEditActivity extends AppCompatActivity {
         }
 
         Log.d(APP_TAG, "PackageEdit activity started");
+    }
+
+    private void assignViewVars() {
+        mTitleTextView = findViewById(R.id.retrieval_form_textView);
+        mScrollView = findViewById(R.id.main_scrollView);
+
+        // Senders information var assignment
+        mSendersName = findViewById(R.id.sender_fullName_input);
+        mSendersPhone = findViewById(R.id.sender_phone_input);
+        mSendersAddress = findViewById(R.id.sender_address_input);
+
+        // Receivers information var assignment
+        mReceiversName = findViewById(R.id.receiver_fullName_input);
+        mReceiversPhone = findViewById(R.id.receiver_phone_input);
+        mReceiversAddress = findViewById(R.id.receiver_address_input);
+
+        // Image information var assignment
+        packageImageView = findViewById(R.id.package_image_placeholder);
+
+        // Package received button
+        mPackageReceivedButton = findViewById(R.id.package_received_button);
+
+        // Transporter user assignment
+        transporter = FirebaseAuth.getInstance().getCurrentUser();
+
+        // Progress bar hook and dimming
+        mProgressBar = findViewById(R.id.deliveryProgressBar);
+        mProgressBar.setVisibility(View.INVISIBLE);
     }
 
     // 1. New Delivery Functions =============================================== //

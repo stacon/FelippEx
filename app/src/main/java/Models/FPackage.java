@@ -33,6 +33,7 @@ public class FPackage {
         this.dateReceived = CodeHelper.getDateNowToString();
         this.timeReceived = CodeHelper.getTimeNowToString();
 
+
         if (this.syntheticReceiptValue == null) {
             this.syntheticReceiptValue = pReceiverFUID + "-" + this.dateReceived;
         }
@@ -89,8 +90,9 @@ public class FPackage {
         this.syntheticDeliveryValue = syntheticDeliveryValue;
     }
 
-    public void setAsDeliveredSyntheticKey() {
-        this.syntheticDeliveryValue = assignedDelivererFUID + "-true";
+    public void markAsDelivered() {
+        this.setDelivered(true);
+        this.setSyntheticDeliveryValue(this.assignedDelivererFUID + "-true");
     }
 
     public String getTransactionId() {

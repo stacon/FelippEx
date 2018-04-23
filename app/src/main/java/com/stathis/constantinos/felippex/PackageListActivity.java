@@ -23,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import Adapters.TodayPackagesAdapter;
+import Adapters.PackageListAdapter;
 import Models.FPackage;
 import Models.Transactor;
 
@@ -38,7 +38,7 @@ public class PackageListActivity extends AppCompatActivity {
 
     private List<FPackage> mFPackageList = new ArrayList<>();
     private RecyclerView mRecyclerView;
-    private TodayPackagesAdapter mTodayPackagesAdapter;
+    private PackageListAdapter mPackageListAdapter;
 
     private ProgressBar mProgressBar;
     private TextView mNoPackagesFoundTextView;
@@ -51,9 +51,9 @@ public class PackageListActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume()   {
         super.onResume();
-        mTodayPackagesAdapter.clear();
+        mPackageListAdapter.clear();
         if (viewMode.equals("receipts")){
             populateTodayReceivedList();
         } else if (viewMode.equals("deliveries")) {
@@ -62,7 +62,6 @@ public class PackageListActivity extends AppCompatActivity {
             mProgressBar.setVisibility(View.INVISIBLE);
             Toast.makeText(PackageListActivity.this, R.string.something_went_wrong_toast, Toast.LENGTH_SHORT).show();
         }
-
     }
 
     private void init() {
@@ -75,11 +74,11 @@ public class PackageListActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.mtProgressBar);
 
         mRecyclerView = findViewById(R.id.today_packages_recycler_view);
-        mTodayPackagesAdapter = new TodayPackagesAdapter(mFPackageList, PackageListActivity.this, viewMode);
+        mPackageListAdapter = new PackageListAdapter(mFPackageList, PackageListActivity.this, viewMode);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setAdapter(mTodayPackagesAdapter);
+        mRecyclerView.setAdapter(mPackageListAdapter);
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
         transporterUID = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -103,7 +102,7 @@ public class PackageListActivity extends AppCompatActivity {
                         mFPackageList.add(fPackage);
                     }
 
-                    mTodayPackagesAdapter.notifyDataSetChanged();
+                    mPackageListAdapter.notifyDataSetChanged();
                     mProgressBar.setVisibility(View.INVISIBLE);
                 } else {
                     Log.d(APP_TAG, "No data found with the synthetic key of " + querySynthKey);
@@ -137,7 +136,7 @@ public class PackageListActivity extends AppCompatActivity {
                         mFPackageList.add(fPackage);
                     }
 
-                    mTodayPackagesAdapter.notifyDataSetChanged();
+                    mPackageListAdapter.notifyDataSetChanged();
                     mProgressBar.setVisibility(View.INVISIBLE);
                 } else {
                     Log.d(APP_TAG, "No deliveries found for " + transporterUID);

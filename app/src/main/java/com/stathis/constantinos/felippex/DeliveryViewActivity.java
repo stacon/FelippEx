@@ -191,8 +191,7 @@ public class DeliveryViewActivity extends AppCompatActivity {
     private void attemptToMarkDeliveryAsDelivered() {
         acProgressBar.setVisibility(View.VISIBLE);
         disableUI();
-        deliveryPackage.setDelivered(true);
-        deliveryPackage.setAsDeliveredSyntheticKey();
+        deliveryPackage.markAsDelivered();
 
         mDatabase.child(transactionID).setValue(deliveryPackage).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override

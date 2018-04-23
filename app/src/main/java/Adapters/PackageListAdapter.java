@@ -18,7 +18,7 @@ import java.util.List;
 
 import Models.FPackage;
 
-public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdapter.MyViewHolder> {
+public class PackageListAdapter extends RecyclerView.Adapter<PackageListAdapter.MyViewHolder> {
 
     private final String APP_TAG = "FelippEx";
     private List<FPackage> tPackageList;
@@ -42,7 +42,7 @@ public class TodayPackagesAdapter extends RecyclerView.Adapter<TodayPackagesAdap
         }
      }
 
-    public TodayPackagesAdapter(List<FPackage> tPackageList, Context context, String mode) {
+    public PackageListAdapter(List<FPackage> tPackageList, Context context, String mode) {
         this.tPackageList = tPackageList;
         this.context = context;
         this.mode = mode;

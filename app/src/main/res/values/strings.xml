@@ -69,7 +69,7 @@
     <string name="request_package_photo_toast">Please take a photo of the package</string>
     <string name="request_email_fill_toast">Please fill your corporate FileppEx e-mail</string>
     <string name="email_appears_invalid_toast">The e-mail provided appears to be invalid</string>
-    <string name="request_password_fill_toast">Please provide your corporate FileppEx password associated with </string>
+    <string name="request_password_fill_toast">Please provide your corporate FileppEx password associated with&#160;</string>
     <string name="deletion_failed_toast">FAILED to delete delivery</string>
     <string name="package_marked_delivered_toast">Package marked as DELIVERED</string>
     <string name="package_not_marked_delivered_toast">FAILURE: Package failed to be marked as delivered</string>

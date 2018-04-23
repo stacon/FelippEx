@@ -49,22 +49,20 @@ public class CodeHelper {
 
     // Checks if values are empty and produces errors for LoginActivity
     public final static boolean emailAndPasswordValid(String email, String password, Context context) {
-        Boolean valid = true;
 
         if (email.isEmpty()) {
             Toast.makeText(context, R.string.request_email_fill_toast, Toast.LENGTH_SHORT).show();
-            valid = false;
+            return false;
         }
         if (!CodeHelper.isValidEmail(email)) {
             Toast.makeText(context, R.string.email_appears_invalid_toast, Toast.LENGTH_SHORT).show();
-            valid = false;
+            return false;
         }
         if (password.equals("")) {
-            Toast.makeText(context, R.string.request_password_fill_toast + email, Toast.LENGTH_SHORT).show();
-            valid = false;
+            Toast.makeText(context, context.getResources().getString(R.string.request_password_fill_toast) + email, Toast.LENGTH_SHORT).show();
+            return false;
         }
 
-        return valid;
+        return true;
     }
-
 }

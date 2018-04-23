@@ -43,6 +43,7 @@ public class Transactor {
         Matcher matcher = pattern.matcher(fullName);
         return matcher.find();
     }
+
     private boolean isValidPhoneNumber(String phoneNumber) {
         return android.util.Patterns.PHONE.matcher(phoneNumber).matches();
     }
