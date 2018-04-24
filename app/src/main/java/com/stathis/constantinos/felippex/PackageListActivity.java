@@ -39,6 +39,7 @@ public class PackageListActivity extends AppCompatActivity {
     private List<FPackage> mFPackageList = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private PackageListAdapter mPackageListAdapter;
+    private TextView mTitleTextView;
 
     private ProgressBar mProgressBar;
     private TextView mNoPackagesFoundTextView;
@@ -46,7 +47,7 @@ public class PackageListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_today_received);
+        setContentView(R.layout.activity_list);
         init();
     }
 
@@ -55,8 +56,10 @@ public class PackageListActivity extends AppCompatActivity {
         super.onResume();
         mPackageListAdapter.clear();
         if (viewMode.equals("receipts")){
+            mTitleTextView.setText(R.string.today_received_title);
             populateTodayReceivedList();
         } else if (viewMode.equals("deliveries")) {
+            mTitleTextView.setText(R.string.deliveries_title);
             populateDeliveriesList();
         } else {
             mProgressBar.setVisibility(View.INVISIBLE);
@@ -72,6 +75,7 @@ public class PackageListActivity extends AppCompatActivity {
         mNoPackagesFoundTextView = findViewById(R.id.no_packages_found_textview);
         mNoPackagesFoundTextView.setVisibility(View.INVISIBLE);
         mProgressBar = findViewById(R.id.mtProgressBar);
+        mTitleTextView = (TextView) findViewById(R.id.list_title_textView);
 
         mRecyclerView = findViewById(R.id.today_packages_recycler_view);
         mPackageListAdapter = new PackageListAdapter(mFPackageList, PackageListActivity.this, viewMode);

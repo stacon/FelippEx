@@ -32,6 +32,7 @@
 
     <!--Today received packages view-->
     <string name="today_received_title">Today\'s receipts</string>
+    <string name="deliveries_title">Deliveries</string>
     <string name="id_row_textView">ID :</string>
     <string name="receiver">Receiver :</string>
     <string name="sender">Sender :</string>
